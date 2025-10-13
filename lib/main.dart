@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/bloc/register_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:lendly_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -46,8 +48,12 @@ class RegisterUser extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        initialRoute: '/signup',
-        routes: {'/signup': (_) => SignupScreen()},
+        initialRoute: '/login',
+        routes: {
+          '/login': (_) => const LoginScreen(),
+          '/signup': (_) => SignupScreen(),
+          '/profile': (_) => const ProfileScreen(),
+        },
       ),
     );
   }
