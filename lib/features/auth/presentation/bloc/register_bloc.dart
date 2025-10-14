@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/features/auth/domain/usecases/register_user_usecase.dart';
 
 //EVENTOS
@@ -10,11 +11,19 @@ class SubmitRegisterEvent extends RegisterEvent {
   final String email;
   final String password;
   final String name;
+  final String role;
+  final String phone;
+  final String address;
+  final String city;
 
   SubmitRegisterEvent({
     required this.email,
     required this.password,
     required this.name,
+    required this.role,
+    required this.phone,
+    required this.address,
+    required this.city,
   });
 }
 // ***********************************
@@ -52,7 +61,14 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       await registerUserUseCase.execute(
         event.email,
         event.password,
-        event.name,
+        AppUser(
+          id: '',
+          name: event.name,
+          role: event.role,
+          phone: event.phone,
+          address: event.address,
+          city: event.city,
+        ),
       );
       emit(RegisterSuccess());
     } catch (e) {

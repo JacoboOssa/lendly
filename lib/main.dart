@@ -23,40 +23,22 @@ final supabase = Supabase.instance.client;
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lendly',
+      title: 'Lendly App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: RegisterUser(),
-    );
-  }
-}
+      initialRoute: '/login',
+      routes: {
+        '/login': (_) => const LoginScreen(),
 
-class RegisterUser extends StatelessWidget {
-  TextEditingController searchTextFieldController = TextEditingController();
+        '/signup': (_) =>
+            BlocProvider(create: (_) => RegisterBloc(), child: SignupScreen()),
 
-  RegisterUser({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => RegisterBloc(), // se crea aquí y se expone al árbol
-      child: MaterialApp(
-        title: 'Lendly App',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
-        initialRoute: '/login',
-        routes: {
-          '/login': (_) => const LoginScreen(),
-          '/signup': (_) => SignupScreen(),
-          '/profile': (_) => const ProfileScreen(),
-        },
-      ),
+        '/profile': (_) => const ProfileScreen(),
+      },
     );
   }
 }

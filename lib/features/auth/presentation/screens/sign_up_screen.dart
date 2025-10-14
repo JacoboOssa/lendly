@@ -70,23 +70,28 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _finishRegistration({required bool skipProfile}) {
-    // Collect data
     final firstName = firstNameController.text.trim();
     final lastName = lastNameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
+    final phone = phoneController.text.trim();
+    final city = cityController.text.trim();
+    final address = addressController.text.trim();
 
-    // Submit to BLoC (the bloc expects email, password and name)
     try {
       context.read<RegisterBloc>().add(
         SubmitRegisterEvent(
           email: email,
           password: password,
           name: '$firstName $lastName',
+          role: _selectedUserType ?? 'P',
+          phone: phone,
+          city: city,
+          address: address,
         ),
       );
     } catch (_) {
-      // If RegisterBloc not available, show a dialog with summary
+      // Si el bloc no está disponible
       final payload = {
         'firstName': firstName,
         'lastName': lastName,
@@ -134,147 +139,174 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  // _buildProgressBar removed - not used in the current design
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // back button and title area
-                Row(
-                  children: [
-                    // circular back button
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.arrow_back_ios_new, size: 16),
-                        onPressed: () {
-                          if (_currentStep > 0) {
-                            setState(() => _currentStep--);
-                          } else {
-                            Navigator.of(context).maybePop();
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+    return BlocListener<RegisterBloc, RegisterState>(
+      listener: (context, state) async {
+        if (state is RegisterLoading) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is RegisterError) {
+          Navigator.of(context, rootNavigator: true).pop(); // cierra el loading
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Error'),
+              content: Text(state.message ?? 'Ocurrió un error al registrarse'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
                 ),
-                const SizedBox(height: 18),
-                // progress bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: _currentStep == 0
-                        ? 0.33
-                        : _currentStep == 1
-                        ? 0.66
-                        : 1.0,
-                    minHeight: 10,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation(const Color(0xFF98A1BC)),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                if (_currentStep == 0) ...[
-                  // User type selection step
-                  UserTypeSelectionScreen(
-                    onUserTypeSelected: _onUserTypeSelected,
-                  ),
-                ] else ...[
-                  const Text(
-                    'Crea tu cuenta',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C2C2C),
-                    ),
-                  ),
-                  if (_selectedUserType != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF98A1BC).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _selectedUserType == 'lender'
-                            ? 'Propietario'
-                            : 'Arrendatario',
-                        style: const TextStyle(
-                          color: Color(0xFF98A1BC),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 18),
-
-                  // card-like container matching design
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0,
-                        vertical: 24,
-                      ),
-                      child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
-                    ),
-                  ),
-                ],
-
-                if (_currentStep > 0) ...[
-                  const SizedBox(height: 18),
-                  // bottom link
+              ],
+            ),
+          );
+        } else if (state is RegisterSuccess) {
+          Navigator.of(context, rootNavigator: true).pop(); // cierra loading
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacementNamed(context, '/login');
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // back button and title area
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        '¿Ya tienes cuenta? ',
-                        style: TextStyle(color: Color(0xFF6D6D6D)),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/login'),
-                        child: const Text(
-                          'Ingresa',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 16),
+                          onPressed: () {
+                            if (_currentStep > 0) {
+                              setState(() => _currentStep--);
+                            } else {
+                              Navigator.of(context).maybePop();
+                            }
+                          },
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 18),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: _currentStep == 0
+                          ? 0.33
+                          : _currentStep == 1
+                          ? 0.66
+                          : 1.0,
+                      minHeight: 10,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: AlwaysStoppedAnimation(
+                        const Color(0xFF98A1BC),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  if (_currentStep == 0) ...[
+                    UserTypeSelectionScreen(
+                      onUserTypeSelected: _onUserTypeSelected,
+                    ),
+                  ] else ...[
+                    const Text(
+                      'Crea tu cuenta',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C2C2C),
+                      ),
+                    ),
+                    if (_selectedUserType != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF98A1BC).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _selectedUserType == 'lender' ? 'P' : 'A',
+                          style: const TextStyle(
+                            color: Color(0xFF98A1BC),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0,
+                          vertical: 24,
+                        ),
+                        child: _currentStep == 1
+                            ? _buildStep1()
+                            : _buildStep2(),
+                      ),
+                    ),
+                  ],
+                  if (_currentStep > 0) ...[
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '¿Ya tienes cuenta? ',
+                          style: TextStyle(color: Color(0xFF6D6D6D)),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/login'),
+                          child: const Text(
+                            'Ingresa',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
