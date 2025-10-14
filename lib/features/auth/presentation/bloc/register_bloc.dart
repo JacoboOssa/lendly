@@ -63,6 +63,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         event.password,
         AppUser(
           id: '',
+          email: event.email,
           name: event.name,
           role: event.role,
           phone: event.phone,
