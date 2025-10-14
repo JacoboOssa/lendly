@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -135,21 +136,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Link para crear cuenta
+                        // Link para crear cuenta (clicable)
                         RichText(
-                          text: const TextSpan(
-                            style: TextStyle(
+                          text: TextSpan(
+                            style: const TextStyle(
                               color: Color(0xFF9E9E9E),
                               fontSize: 14,
                             ),
                             children: [
-                              TextSpan(text: '¿No tienes cuenta aun? '),
+                              const TextSpan(text: '¿No tienes cuenta aun? '),
                               TextSpan(
                                 text: 'Crea una',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF2C2C2C),
                                 ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Navigator.pushNamed(context, '/signup');
+                                  },
                               ),
                             ],
                           ),

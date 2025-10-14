@@ -39,6 +39,8 @@ class MyApp extends StatelessWidget {
 class RegisterUser extends StatelessWidget {
   TextEditingController searchTextFieldController = TextEditingController();
 
+  RegisterUser({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
