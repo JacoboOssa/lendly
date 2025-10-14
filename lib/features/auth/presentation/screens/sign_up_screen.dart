@@ -155,7 +155,7 @@ class _SignupScreenState extends State<SignupScreen> {
             context: context,
             builder: (_) => AlertDialog(
               title: const Text('Error'),
-              content: Text(state.message ?? 'Ocurrió un error al registrarse'),
+              content: Text(state.message),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),

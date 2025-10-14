@@ -1,7 +1,6 @@
 // domain/usecases/register_user_usecase.dart
 import 'package:lendly_app/features/auth/data/repositories/user_repository_impl.dart';
 import 'package:lendly_app/features/auth/domain/repositories/user_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
 
 class RegisterUserUseCase {
