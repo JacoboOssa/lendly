@@ -7,15 +7,15 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C), // Fondo gris oscuro
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              // Card principal blanco
-              Expanded(
-                child: Container(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24),
+            child: Column(
+              children: [
+                // Card principal blanco
+                Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAFAFA), // Off-white
@@ -51,10 +51,13 @@ class ProfileScreen extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 50,
+                            child: Text(
+                              'MS',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -118,14 +121,23 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         
                         _buildMenuOption(
-                          icon: Icons.message_outlined,
-                          text: 'Mensajes',
+                          icon: Icons.star_outline,
+                          text: 'Calificanos',
                           onTap: () {
-                            print('Mensajes');
+                            print('Calificanos');
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildMenuOption(
+                          icon: Icons.info_outline,
+                          text: 'Acerca de',
+                          onTap: () {
+                            print('Acerca de');
                           },
                         ),
                         
-                        const Spacer(),
+                        const SizedBox(height: 40),
                         
                         // Botón de cerrar sesión
                         SizedBox(
@@ -155,8 +167,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
