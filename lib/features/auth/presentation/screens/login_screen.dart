@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Card principal blanco
               Expanded(
                 child: Container(
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Campo de email
                         Container(
                           decoration: BoxDecoration(
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Campo de contraseña
                         Container(
                           decoration: BoxDecoration(
@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Botón Continuar
                         SizedBox(
                           width: double.infinity,
@@ -119,7 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushNamed(context, '/profile');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF98A1BC), // Color exacto solicitado
+                              backgroundColor: const Color(
+                                0xFF98A1BC,
+                              ), // Color exacto solicitado
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -135,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Link para crear cuenta (clicable)
                         RichText(
                           text: TextSpan(
@@ -160,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Botones de redes sociales
                         _buildSocialButton(
                           icon: Icons.apple,
@@ -170,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        
+
                         _buildSocialButton(
                           icon: Icons.g_mobiledata,
                           text: 'Continua con Google',
@@ -179,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        
+
                         _buildSocialButton(
                           icon: Icons.facebook,
                           text: 'Continua con Facebook',
@@ -218,11 +220,11 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(width: 16),
             Icon(
               icon,
-              color: icon == Icons.apple 
-                  ? Colors.black 
-                  : icon == Icons.g_mobiledata 
-                      ? const Color(0xFF4285F4) 
-                      : const Color(0xFF1877F2),
+              color: icon == Icons.apple
+                  ? Colors.black
+                  : icon == Icons.g_mobiledata
+                  ? const Color(0xFF4285F4)
+                  : const Color(0xFF1877F2),
               size: 24,
             ),
             const SizedBox(width: 12),

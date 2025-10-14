@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:lendly_app/features/auth/presentation/bloc/register_bloc.dart';
+import 'package:lendly_app/features/auth/presentation/screens/user_type_selection_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -29,7 +30,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool notifyPush = false;
   bool notifyEmail = false;
 
-  int _currentStep = 1; // 1 or 2
+  int _currentStep = 0; // 0: user type, 1: basic info, 2: profile
+  String? _selectedUserType;
   XFile? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -45,11 +47,20 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  void _onUserTypeSelected(String userType) {
+    setState(() {
+      _selectedUserType = userType;
+      _currentStep = 1;
+    });
+  }
+
   void _goToStep2() {
     if (_formKeyStep1.currentState?.validate() ?? false) {
       if (!acceptTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debes aceptar los términos para continuar')),
+          const SnackBar(
+            content: Text('Debes aceptar los términos para continuar'),
+          ),
         );
         return;
       }
@@ -68,12 +79,12 @@ class _SignupScreenState extends State<SignupScreen> {
     // Submit to BLoC (the bloc expects email, password and name)
     try {
       context.read<RegisterBloc>().add(
-            SubmitRegisterEvent(
-              email: email,
-              password: password,
-              name: '$firstName $lastName',
-            ),
-          );
+        SubmitRegisterEvent(
+          email: email,
+          password: password,
+          name: '$firstName $lastName',
+        ),
+      );
     } catch (_) {
       // If RegisterBloc not available, show a dialog with summary
       final payload = {
@@ -94,7 +105,10 @@ class _SignupScreenState extends State<SignupScreen> {
           title: const Text('Registro (demo)'),
           content: Text('Datos: ${payload.toString()}'),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
           ],
         ),
       );
@@ -103,14 +117,20 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? picked = await _picker.pickImage(source: source, imageQuality: 80, maxWidth: 800);
+      final XFile? picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
       if (picked != null) {
         setState(() {
           _profileImage = picked;
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo seleccionar la imagen')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo seleccionar la imagen')),
+      );
     }
   }
 
@@ -148,7 +168,13 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         icon: const Icon(Icons.arrow_back_ios_new, size: 16),
-                        onPressed: () => Navigator.of(context).maybePop(),
+                        onPressed: () {
+                          if (_currentStep > 0) {
+                            setState(() => _currentStep--);
+                          } else {
+                            Navigator.of(context).maybePop();
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -158,44 +184,96 @@ class _SignupScreenState extends State<SignupScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: _currentStep == 1 ? 0.5 : 1.0,
+                    value: _currentStep == 0
+                        ? 0.33
+                        : _currentStep == 1
+                        ? 0.66
+                        : 1.0,
                     minHeight: 10,
                     backgroundColor: Colors.grey.shade200,
                     valueColor: AlwaysStoppedAnimation(const Color(0xFF98A1BC)),
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Crea tu cuenta',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF2C2C2C)),
-                ),
-                const SizedBox(height: 18),
-
-                // card-like container matching design
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                if (_currentStep == 0) ...[
+                  // User type selection step
+                  UserTypeSelectionScreen(
+                    onUserTypeSelected: _onUserTypeSelected,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
-                    child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+                ] else ...[
+                  const Text(
+                    'Crea tu cuenta',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C2C2C),
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 18),
-                // bottom link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('¿Ya tienes cuenta? ', style: TextStyle(color: Color(0xFF6D6D6D))),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/login'),
-                      child: const Text('Ingresa', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                  if (_selectedUserType != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF98A1BC).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _selectedUserType == 'lender'
+                            ? 'Propietario'
+                            : 'Arrendatario',
+                        style: const TextStyle(
+                          color: Color(0xFF98A1BC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
-                ),
+                  const SizedBox(height: 18),
+
+                  // card-like container matching design
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 24,
+                      ),
+                      child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+                    ),
+                  ),
+                ],
+
+                if (_currentStep > 0) ...[
+                  const SizedBox(height: 18),
+                  // bottom link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        '¿Ya tienes cuenta? ',
+                        style: TextStyle(color: Color(0xFF6D6D6D)),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, '/login'),
+                        child: const Text(
+                          'Ingresa',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -214,32 +292,40 @@ class _SignupScreenState extends State<SignupScreen> {
             controller: firstNameController,
             decoration: InputDecoration(
               hintText: 'Primer nombre*',
-              hintStyle: TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 16,
-              ),
+              hintStyle: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa tu nombre' : null,
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Ingresa tu nombre' : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: lastNameController,
             decoration: InputDecoration(
               hintText: 'Apellido(s)*',
-              hintStyle: TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 16,
-              ),
+              hintStyle: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa tu apellido' : null,
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Ingresa tu apellido' : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -247,14 +333,17 @@ class _SignupScreenState extends State<SignupScreen> {
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               hintText: 'Correo electronico*',
-              hintStyle: TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 16,
-              ),
+              hintStyle: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Ingresa el correo';
@@ -269,18 +358,22 @@ class _SignupScreenState extends State<SignupScreen> {
             obscureText: true,
             decoration: InputDecoration(
               hintText: 'Contraseña*',
-              hintStyle: TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 16,
-              ),
+              hintStyle: TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Ingresa la contraseña';
-              if (v.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+              if (v.length < 6)
+                return 'La contraseña debe tener al menos 6 caracteres';
               return null;
             },
           ),
@@ -301,10 +394,19 @@ class _SignupScreenState extends State<SignupScreen> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF98A1BC),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: _goToStep2,
-              child: const Text('Continuar', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Continuar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -328,8 +430,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     CircleAvatar(
                       radius: 52,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: _profileImage != null ? FileImage(File(_profileImage!.path)) : null,
-                      child: _profileImage == null ? const Icon(Icons.person, size: 48, color: Colors.grey) : null,
+                      backgroundImage: _profileImage != null
+                          ? FileImage(File(_profileImage!.path))
+                          : null,
+                      child: _profileImage == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 48,
+                              color: Colors.grey,
+                            )
+                          : null,
                     ),
                     Positioned(
                       right: 0,
@@ -343,7 +453,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 children: [
                                   ListTile(
                                     leading: const Icon(Icons.photo_library),
-                                    title: const Text('Seleccionar de la galería'),
+                                    title: const Text(
+                                      'Seleccionar de la galería',
+                                    ),
                                     onTap: () {
                                       Navigator.of(context).pop();
                                       _pickImage(ImageSource.gallery);
@@ -363,16 +475,26 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         },
                         child: Container(
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           padding: const EdgeInsets.all(6),
-                          child: const Icon(Icons.edit, size: 18, color: Color(0xFF98A1BC)),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: Color(0xFF98A1BC),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('Foto de perfil (opcional)', style: TextStyle(color: Color(0xFF6D6D6D))),
+                const Text(
+                  'Foto de perfil (opcional)',
+                  style: TextStyle(color: Color(0xFF6D6D6D)),
+                ),
                 const SizedBox(height: 18),
               ],
             ),
@@ -387,11 +509,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     hintText: 'Teléfono',
-                    hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF9E9E9E),
+                      fontSize: 16,
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
               ),
@@ -401,11 +532,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: cityController,
                   decoration: InputDecoration(
                     hintText: 'Ciudad',
-                    hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF9E9E9E),
+                      fontSize: 16,
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
               ),
@@ -418,11 +558,20 @@ class _SignupScreenState extends State<SignupScreen> {
             controller: addressController,
             decoration: InputDecoration(
               hintText: 'Dirección',
-              hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
+              hintStyle: const TextStyle(
+                color: Color(0xFF9E9E9E),
+                fontSize: 16,
+              ),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -433,7 +582,10 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Checkbox(value: notifyPush, onChanged: (v) => setState(() => notifyPush = v ?? false)),
+                    Checkbox(
+                      value: notifyPush,
+                      onChanged: (v) => setState(() => notifyPush = v ?? false),
+                    ),
                     const Flexible(child: Text('Notificaciones push')),
                   ],
                 ),
@@ -442,7 +594,11 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Checkbox(value: notifyEmail, onChanged: (v) => setState(() => notifyEmail = v ?? false)),
+                    Checkbox(
+                      value: notifyEmail,
+                      onChanged: (v) =>
+                          setState(() => notifyEmail = v ?? false),
+                    ),
                     const Flexible(child: Text('Notificaciones por email')),
                   ],
                 ),
@@ -458,14 +614,23 @@ class _SignupScreenState extends State<SignupScreen> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF98A1BC),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 if (_formKeyStep2.currentState?.validate() ?? true) {
                   _finishRegistration(skipProfile: false);
                 }
               },
-              child: const Text('Finalizar', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Finalizar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -475,10 +640,19 @@ class _SignupScreenState extends State<SignupScreen> {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFF98A1BC)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => _finishRegistration(skipProfile: true),
-              child: const Text('Saltar por ahora', style: TextStyle(color: Color(0xFF98A1BC), fontSize: 16, fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Saltar por ahora',
+                style: TextStyle(
+                  color: Color(0xFF98A1BC),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
