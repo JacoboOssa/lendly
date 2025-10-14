@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/features/auth/presentation/bloc/login_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,175 +19,207 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                
-                // Card principal blanco
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Título "Inicia sesión"
-                        const Text(
-                          'Inicia sesión',
-                          style: TextStyle(
-                            color: Color(0xFF2C2C2C),
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+        child: BlocBuilder<LoginBloc, LoginState>(
+          builder: (context, state) {
+            if (state is LoginSuccess) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacementNamed(context, '/profile');
+              });
+            }
 
-                        // Campo de email
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5), // Beige claro
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextField(
-                            controller: _emailController,
-                            decoration: const InputDecoration(
-                              hintText: 'Correo electronico',
-                              hintStyle: TextStyle(
-                                color: Color(0xFF9E9E9E),
-                                fontSize: 16,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Card principal blanco
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Título "Inicia sesión"
+                            const Text(
+                              'Inicia sesión',
+                              style: TextStyle(
+                                color: Color(0xFF2C2C2C),
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                            const SizedBox(height: 32),
 
-                        // Campo de contraseña
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5), // Beige claro
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextField(
-                            controller: _passwordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                              hintText: 'Contraseña',
-                              hintStyle: TextStyle(
-                                color: Color(0xFF9E9E9E),
-                                fontSize: 16,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Botón Continuar
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Lógica de login
-                              print('Email: ${_emailController.text}');
-                              print('Password: ${_passwordController.text}');
-                              // Navegar a la pantalla de profile
-                              Navigator.pushNamed(context, '/profile');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(
-                                0xFF98A1BC,
-                              ), // Color exacto solicitado
-                              shape: RoundedRectangleBorder(
+                            // Campo de email
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F5),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                            child: const Text(
-                              'Continuar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Link para crear cuenta (clicable)
-                        RichText(
-                          text: TextSpan(
-                            style: const TextStyle(
-                              color: Color(0xFF9E9E9E),
-                              fontSize: 14,
-                            ),
-                            children: [
-                              const TextSpan(text: '¿No tienes cuenta aun? '),
-                              TextSpan(
-                                text: 'Crea una',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C2C2C),
+                              child: TextField(
+                                controller: _emailController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Correo electrónico',
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFF9E9E9E),
+                                    fontSize: 16,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pushNamed(context, '/signup');
-                                  },
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                            ),
+                            const SizedBox(height: 16),
 
-                        // Botones de redes sociales
-                        _buildSocialButton(
-                          icon: Icons.apple,
-                          text: 'Continua con Apple',
-                          onTap: () {
-                            print('Login with Apple');
-                          },
-                        ),
-                        const SizedBox(height: 12),
+                            // Campo de contraseña
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F5),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Contraseña',
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFF9E9E9E),
+                                    fontSize: 16,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
 
-                        _buildSocialButton(
-                          icon: Icons.g_mobiledata,
-                          text: 'Continua con Google',
-                          onTap: () {
-                            print('Login with Google');
-                          },
-                        ),
-                        const SizedBox(height: 12),
+                            // Estado de carga
+                            if (state is LoginLoading)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: CircularProgressIndicator(),
+                              ),
 
-                        _buildSocialButton(
-                          icon: Icons.facebook,
-                          text: 'Continua con Facebook',
-                          onTap: () {
-                            print('Login with Facebook');
-                          },
+                            // Estado de error
+                            if (state is LoginError)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Text(
+                                  state.message,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+
+                            // Botón Continuar
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: state is LoginLoading
+                                    ? null
+                                    : () {
+                                        final email = _emailController.text;
+                                        final password =
+                                            _passwordController.text;
+                                        context.read<LoginBloc>().add(
+                                          SubmitLoginEvent(
+                                            email: email,
+                                            password: password,
+                                          ),
+                                        );
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF98A1BC),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Continuar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Link para crear cuenta
+                            RichText(
+                              text: TextSpan(
+                                style: const TextStyle(
+                                  color: Color(0xFF9E9E9E),
+                                  fontSize: 14,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: '¿No tienes cuenta aún? ',
+                                  ),
+                                  TextSpan(
+                                    text: 'Crea una',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2C2C2C),
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.pushNamed(context, '/signup');
+                                      },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Botones de redes sociales
+                            _buildSocialButton(
+                              icon: Icons.apple,
+                              text: 'Continúa con Apple',
+                              onTap: () {},
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSocialButton(
+                              icon: Icons.g_mobiledata,
+                              text: 'Continúa con Google',
+                              onTap: () {},
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSocialButton(
+                              icon: Icons.facebook,
+                              text: 'Continúa con Facebook',
+                              onTap: () {},
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -202,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5), // Beige claro
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

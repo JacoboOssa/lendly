@@ -16,4 +16,9 @@ class UserRepositoryImpl implements UserRepository {
       await profileDataSource.createUser(user);
     }
   }
+
+  @override
+  Future<void> signIn(String email, String password) {
+    return authDataSource.signIn(email, password);
+  }
 }
