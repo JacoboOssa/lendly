@@ -4,6 +4,7 @@ import 'package:lendly_app/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/bloc/register_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:lendly_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -39,7 +40,8 @@ class MyApp extends StatelessWidget {
         '/signup': (_) =>
             BlocProvider(create: (_) => RegisterBloc(), child: SignupScreen()),
 
-        '/profile': (_) => const ProfileScreen(),
+        '/profile': (_) =>
+            BlocProvider(create: (_) => LogoutBloc(), child: ProfileScreen()),
       },
     );
   }
