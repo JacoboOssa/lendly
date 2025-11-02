@@ -151,14 +151,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildMenuOption(
-                      icon: Icons.inventory_2_outlined,
-                      text: 'Gestionar disponibilidad',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/manage-availability');
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
                       icon: Icons.message_outlined,
                       text: 'Mensajes',
                       onTap: () {},
