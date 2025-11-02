@@ -8,6 +8,7 @@ import 'package:lendly_app/features/profile/presentation/bloc/get_current_user_b
 import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:lendly_app/features/product/presentation/screens/manage_availability_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
           ],
           child: const ProfileScreen(),
         ),
+        '/manage-availability': (_) => const ManageAvailabilityScreen(),
       },
     );
   }
