@@ -151,6 +151,13 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildMenuOption(
+                      icon: Icons.inventory_2_outlined,
+                      text: 'Gestionar mis productos',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/manage-products'),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMenuOption(
                       icon: Icons.message_outlined,
                       text: 'Mensajes',
                       onTap: () {},

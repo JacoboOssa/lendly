@@ -9,6 +9,7 @@ import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:lendly_app/features/publish/presentation/screens/home_screen.dart';
 import 'package:lendly_app/features/publish/presentation/screens/publish_product_screen.dart';
+import 'package:lendly_app/features/publish/presentation/screens/manage_products_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
           child: const ProfileScreen(),
         ),
         '/publish': (_) => const PublishProductScreen(),
+        '/manage-products': (_) => const ManageProductsScreen(),
         '/home': (_) => const HomeScreen(),
       },
     );
