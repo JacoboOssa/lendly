@@ -7,6 +7,7 @@ import 'package:lendly_app/features/auth/presentation/screens/login_screen.dart'
 import 'package:lendly_app/features/profile/presentation/bloc/get_current_user_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_screen.dart';
+import 'package:lendly_app/features/publish/presentation/screens/home_screen.dart';
 import 'package:lendly_app/features/publish/presentation/screens/publish_product_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
           child: const ProfileScreen(),
         ),
         '/publish': (_) => const PublishProductScreen(),
+        '/home': (_) => const HomeScreen(),
       },
     );
   }
