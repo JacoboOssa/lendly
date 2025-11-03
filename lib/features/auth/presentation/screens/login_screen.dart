@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context, state) {
             if (state is LoginSuccess) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacementNamed(context, '/profile');
+                Navigator.pushReplacementNamed(context, '/home');
               });
             }
 

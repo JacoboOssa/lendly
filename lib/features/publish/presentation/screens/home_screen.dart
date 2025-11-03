@@ -255,12 +255,15 @@ class _HomeBottomNav extends StatelessWidget {
         height: 64,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
+            children: [
             _NavIcon(icon: Icons.home_filled, label: 'Inicio', active: true),
             _NavIcon(icon: Icons.notifications_none, label: 'Avisos'),
             const SizedBox(width: 48), // space for FAB
             _NavIcon(icon: Icons.chat_bubble_outline, label: 'Mensajes'),
-            _NavIcon(icon: Icons.person_outline, label: ''),
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/profile'),
+              child: _NavIcon(icon: Icons.person_outline, label: 'Perfil'),
+            ),
           ],
         ),
       ),
