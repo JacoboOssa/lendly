@@ -6,13 +6,10 @@ import 'package:flutter/material.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  static const _primary = Color(0xFF98A1BC);
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+    return SafeArea(
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
           child: Column(
@@ -57,18 +54,10 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _TrendingRow(),
               const SizedBox(height: 20),
-              const Expanded(child: SizedBox()),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _HomeBottomNav(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/publish'),
-        backgroundColor: _primary,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
@@ -342,58 +331,6 @@ class _TrendingCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _HomeBottomNav extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 6,
-      child: SizedBox(
-        height: 64,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavIcon(icon: Icons.home_filled, label: 'Inicio', active: true),
-            _NavIcon(icon: Icons.notifications_none, label: 'Avisos'),
-            const SizedBox(width: 48), // space for FAB
-            _NavIcon(icon: Icons.chat_bubble_outline, label: 'Mensajes'),
-            GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/profile'),
-              child: _NavIcon(icon: Icons.person_outline, label: 'Perfil'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavIcon extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  const _NavIcon({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          color: active ? const Color(0xFF5B5670) : const Color(0xFFBDBDBD),
-        ),
-        // labels removed by design: only icons are shown now
-      ],
     );
   }
 }
