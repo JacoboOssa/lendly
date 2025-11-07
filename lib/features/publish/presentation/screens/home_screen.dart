@@ -19,32 +19,6 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
               _SearchBar(),
               const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  height: 36,
-                  child: ElevatedButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/manage-products'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5670),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      minimumSize: const Size(0, 36),
-                    ),
-                    child: const Text(
-                      'Gestionar mis productos',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 12),
               _SectionTitle(title: 'Categorías', actionText: 'Ver todo'),
               const SizedBox(height: 12),
