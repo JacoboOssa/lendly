@@ -75,8 +75,9 @@ class Product {
       ratingAvg: json['rating_avg'] != null
           ? double.tryParse(json['rating_avg'].toString())
           : null,
-      createdAt:
-          json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
     );
   }
 }
