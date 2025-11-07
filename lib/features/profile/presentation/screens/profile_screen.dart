@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/get_current_user_bloc.dart';
+import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -155,8 +156,17 @@ class ProfileScreen extends StatelessWidget {
                       _buildMenuOption(
                         icon: Icons.inventory_2_outlined,
                         text: 'Gestionar mis productos',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/manage-products'),
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            '/manage-products',
+                          );
+                          if (context.mounted) {
+                            context.read<AvailableProductsBloc>().add(
+                              LoadAvailableProducts(),
+                            );
+                          }
+                        },
                       ),
                     ],
 
