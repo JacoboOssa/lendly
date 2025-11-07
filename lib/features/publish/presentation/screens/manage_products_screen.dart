@@ -260,9 +260,10 @@ class _ProductCard extends StatelessWidget {
                             color: Colors.grey[300],
                             child: Center(
                               child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
                                     ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
+                                          loadingProgress.expectedTotalBytes!
                                     : null,
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
