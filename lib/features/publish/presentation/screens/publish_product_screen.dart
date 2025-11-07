@@ -1,7 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/availability.dart';
+import 'package:lendly_app/features/publish/presentation/bloc/create_product_bloc.dart';
+import 'package:lendly_app/main.dart';
 
 /// Pantalla para publicar un producto/objeto.
 /// Código separado en widgets pequeños: _Header, _ProductForm, _PhotoUploader, _FooterActions
@@ -102,7 +108,7 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     setState(() => _images.removeAt(index));
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -111,120 +117,190 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
       return;
     }
 
-    // Recolectar payload de ejemplo
-    final payload = {
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'category': _category,
-      'condition': _condition,
-      'price': _priceController.text.trim(),
-      'unit': _priceUnit,
-      'country': _countryController.text.trim(),
-      'city': _cityController.text.trim(),
-      'address': _addressController.text.trim(),
-      'features': _featuresController.text.trim(),
-      'images': _images.map((e) => e.path).toList(),
-      'availability': {
-        'start_date': _startDate?.toIso8601String(),
-        'end_date': _endDate?.toIso8601String(),
-      },
-    };
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Debes seleccionar fechas de disponibilidad'),
+        ),
+      );
+      return;
+    }
 
-    // Por ahora mostramos un dialog de éxito
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Producto creado (demo)'),
-        content: Text('Payload:\n${payload.toString()}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    try {
+      // Obtener el usuario actual
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
+        return;
+      }
+
+      // Convertir precio a centavos
+      final priceText = _priceController.text.trim();
+      final priceValue = double.tryParse(priceText) ?? 0;
+      final priceInCents = (priceValue * 100).toInt();
+
+      // Obtener bytes de la primera imagen si existe
+      Uint8List? imageBytes;
+      if (_images.isNotEmpty) {
+        final file = File(_images.first.path);
+        imageBytes = await file.readAsBytes();
+      }
+
+      // Crear el producto
+      final product = Product(
+        ownerId: currentUser.id,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _category,
+        pricePerDayCents: priceInCents,
+        condition: _condition,
+        country: _countryController.text.trim(),
+        city: _cityController.text.trim(),
+        address: _addressController.text.trim(),
+        pickupNotes: _featuresController.text.trim(),
+      );
+
+      // Crear disponibilidad
+      final availability = Availability(
+        itemId: '', // Se asignará después de crear el producto
+        startDate: _startDate!,
+        endDate: _endDate!,
+        isBlocked: false,
+      );
+
+      // Enviar evento al BLoC
+      context.read<CreateProductBloc>().add(
+        CreateProductSubmitted(
+          product: product,
+          availabilities: [availability],
+          photoBytes: imageBytes,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
-          child: Column(
-            children: [
-              const _Header(),
-              const SizedBox(height: 12),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 6),
-                        _ProductForm(
-                          titleController: _titleController,
-                          priceController: _priceController,
-                          priceUnit: _priceUnit,
-                          onUnitChanged: (v) => setState(() => _priceUnit = v),
-                          countryController: _countryController,
-                          cityController: _cityController,
-                          addressController: _addressController,
-                          featuresController: _featuresController,
-                          descriptionController: _descriptionController,
-                          category: _category,
-                          onCategoryChanged: (v) =>
-                              setState(() => _category = v),
-                          condition: _condition,
-                          onConditionChanged: (v) =>
-                              setState(() => _condition = v),
-                          startDate: _startDate,
-                          endDate: _endDate,
-                          onPickStartDate: _pickStartDate,
-                          onPickEndDate: _pickEndDate,
-                        ),
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6.0),
-                          child: Text(
-                            'Fotos',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+    return BlocListener<CreateProductBloc, CreateProductState>(
+      listener: (context, state) {
+        if (state is CreateProductLoading) {
+          // Mostrar indicador de carga
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is CreateProductSuccess) {
+          // Cerrar indicador de carga
+          Navigator.of(context).pop();
+
+          // Mostrar mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Producto publicado exitosamente!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Volver a la pantalla anterior
+          Navigator.of(context).pop();
+        } else if (state is CreateProductError) {
+          // Cerrar indicador de carga si está abierto
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+
+          // Mostrar error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
+            child: Column(
+              children: [
+                const _Header(),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 6),
+                          _ProductForm(
+                            titleController: _titleController,
+                            priceController: _priceController,
+                            priceUnit: _priceUnit,
+                            onUnitChanged: (v) =>
+                                setState(() => _priceUnit = v),
+                            countryController: _countryController,
+                            cityController: _cityController,
+                            addressController: _addressController,
+                            featuresController: _featuresController,
+                            descriptionController: _descriptionController,
+                            category: _category,
+                            onCategoryChanged: (v) =>
+                                setState(() => _category = v),
+                            condition: _condition,
+                            onConditionChanged: (v) =>
+                                setState(() => _condition = v),
+                            startDate: _startDate,
+                            endDate: _endDate,
+                            onPickStartDate: _pickStartDate,
+                            onPickEndDate: _pickEndDate,
+                          ),
+                          const SizedBox(height: 12),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6.0),
+                            child: Text(
+                              'Fotos',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        _PhotoUploader(
-                          images: _images,
-                          onPickImages: _pickImages,
-                          onTakePhoto: _takePhoto,
-                          onRemoveAt: _removeImageAt,
-                        ),
-                        const SizedBox(height: 18),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _termsAccepted,
-                              onChanged: (v) =>
-                                  setState(() => _termsAccepted = v ?? false),
-                            ),
-                            const Expanded(
-                              child: Text('Terminos y condiciones'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        _FooterActions(onSubmit: _submit),
-                        const SizedBox(height: 30),
-                      ],
+                          _PhotoUploader(
+                            images: _images,
+                            onPickImages: _pickImages,
+                            onTakePhoto: _takePhoto,
+                            onRemoveAt: _removeImageAt,
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _termsAccepted,
+                                onChanged: (v) =>
+                                    setState(() => _termsAccepted = v ?? false),
+                              ),
+                              const Expanded(
+                                child: Text('Terminos y condiciones'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _FooterActions(onSubmit: _submit),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
