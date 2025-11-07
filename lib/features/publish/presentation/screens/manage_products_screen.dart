@@ -250,6 +250,28 @@ class _ProductCard extends StatelessWidget {
                       child: Image.network(
                         product.photoUrl!,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            // Imagen cargada completamente
+                            return child;
+                          }
+                          // Mostrar skeleton mientras carga
+                          return Container(
+                            color: Colors.grey[300],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.grey[400]!,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (_, __, ___) => const Center(
                           child: Icon(
                             Icons.broken_image,
