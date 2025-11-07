@@ -149,13 +149,17 @@ class ProfileScreen extends StatelessWidget {
                       text: 'Configuración',
                       onTap: () {},
                     ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.inventory_2_outlined,
-                      text: 'Gestionar mis productos',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/manage-products'),
-                    ),
+
+                    if (user.role.toLowerCase() == 'lender') ...[
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.inventory_2_outlined,
+                        text: 'Gestionar mis productos',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/manage-products'),
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
                     _buildMenuOption(
                       icon: Icons.message_outlined,
