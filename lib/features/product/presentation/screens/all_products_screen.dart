@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
+import 'package:lendly_app/features/product/presentation/screens/product_detail_screen.dart';
+import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key});
@@ -213,7 +215,15 @@ class _ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // TODO: Navigate to product detail
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => ProductDetailBloc(),
+              child: ProductDetailScreen(product: product),
+            ),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
