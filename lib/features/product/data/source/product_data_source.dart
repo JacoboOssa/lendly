@@ -1,4 +1,5 @@
 import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class ProductDataSource {
@@ -6,6 +7,7 @@ abstract class ProductDataSource {
     required int page,
     required int pageSize,
   });
+  Future<AppUser?> getOwnerInfo(String ownerId);
 }
 
 class ProductDataSourceImpl extends ProductDataSource {
@@ -27,5 +29,17 @@ class ProductDataSourceImpl extends ProductDataSource {
         .range(start, end);
 
     return (response as List).map((data) => Product.fromJson(data)).toList();
+  }
+
+  @override
+  Future<AppUser?> getOwnerInfo(String ownerId) async {
+    final response = await Supabase.instance.client
+        .from('users_app')
+        .select()
+        .eq('id', ownerId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return AppUser.fromJson(response);
   }
 }
