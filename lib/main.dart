@@ -10,6 +10,7 @@ import 'package:lendly_app/features/publish/presentation/screens/publish_product
 import 'package:lendly_app/features/publish/presentation/screens/manage_products_screen.dart';
 import 'package:lendly_app/features/publish/presentation/bloc/create_product_bloc.dart';
 import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bloc.dart';
+import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -44,8 +45,13 @@ class MyApp extends StatelessWidget {
         '/signup': (_) =>
             BlocProvider(create: (_) => RegisterBloc(), child: SignupScreen()),
 
-        '/main': (_) =>
-            BlocProvider(create: (_) => GetUserRoleBloc(), child: MainPage()),
+        '/main': (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => GetUserRoleBloc()),
+            BlocProvider(create: (_) => AvailableProductsBloc()),
+          ],
+          child: MainPage(),
+        ),
 
         '/publish': (_) => BlocProvider(
           create: (_) => CreateProductBloc(),
