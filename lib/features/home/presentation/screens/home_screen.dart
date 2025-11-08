@@ -64,6 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     _SectionTitle(
                       title: 'Productos disponibles',
                       actionText: 'Ver todo',
+                      onActionTap: () {
+                        Navigator.pushNamed(context, '/all-products');
+                      },
                     ),
                     const SizedBox(height: 12),
                     state.products.isEmpty
@@ -184,7 +187,13 @@ class _SearchBar extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   final String title;
   final String actionText;
-  const _SectionTitle({required this.title, required this.actionText});
+  final VoidCallback? onActionTap;
+
+  const _SectionTitle({
+    required this.title,
+    required this.actionText,
+    this.onActionTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,9 +204,20 @@ class _SectionTitle extends StatelessWidget {
           title,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
-        Text(
-          actionText,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF6B6B6B)),
+        GestureDetector(
+          onTap: onActionTap,
+          child: Text(
+            actionText,
+            style: TextStyle(
+              fontSize: 14,
+              color: onActionTap != null
+                  ? const Color(0xFF5B5670)
+                  : const Color(0xFF6B6B6B),
+              fontWeight: onActionTap != null
+                  ? FontWeight.w600
+                  : FontWeight.normal,
+            ),
+          ),
         ),
       ],
     );
