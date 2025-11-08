@@ -11,6 +11,8 @@ import 'package:lendly_app/features/publish/presentation/screens/manage_products
 import 'package:lendly_app/features/publish/presentation/bloc/create_product_bloc.dart';
 import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bloc.dart';
 import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
+import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
+import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -64,6 +66,11 @@ class MyApp extends StatelessWidget {
             child: ManageProductsScreen(),
           );
         },
+
+        '/all-products': (_) => BlocProvider(
+          create: (_) => AllProductsBloc(),
+          child: AllProductsScreen(),
+        ),
       },
     );
   }
