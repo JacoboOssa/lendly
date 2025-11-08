@@ -4,7 +4,7 @@ import 'package:lendly_app/features/home/domain/repositories/home_repository.dar
 class ListenItemsUpdatesUsecase {
   final HomeRepository repository = HomeRepositoryImpl();
 
-  Stream<String> call() {
+  Stream<String> execute() {
     return repository.listenItemsUpdates();
   }
 }

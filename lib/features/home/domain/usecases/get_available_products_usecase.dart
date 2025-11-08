@@ -5,7 +5,7 @@ import 'package:lendly_app/features/home/domain/repositories/home_repository.dar
 class GetAvailableProductsUseCase {
   final HomeRepository repository = HomeRepositoryImpl();
 
-  Future<List<Product>> call() async {
+  Future<List<Product>> execute() async {
     return await repository.getAvailableProducts();
   }
 }

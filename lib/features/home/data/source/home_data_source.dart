@@ -51,7 +51,6 @@ class HomeDataSourceImpl extends HomeDataSource {
           schema: 'public',
           table: 'items',
           callback: (payload) {
-            // Convertir PostgresChangeEvent a String
             String eventType;
             switch (payload.eventType) {
               case PostgresChangeEvent.insert:
@@ -66,7 +65,6 @@ class HomeDataSourceImpl extends HomeDataSource {
               default:
                 eventType = 'UNKNOWN';
             }
-            print('🔔 Evento en items: $eventType');
             controller.add(eventType);
           },
         )
