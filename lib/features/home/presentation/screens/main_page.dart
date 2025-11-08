@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lendly_app/features/publish/presentation/screens/home_screen.dart';
+import 'package:lendly_app/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/get_current_user_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/logout_bloc.dart';
@@ -23,6 +23,12 @@ class _MainPageState extends State<MainPage> {
     context.read<GetUserRoleBloc>().add(GetUserRole());
   }
 
+  void _onTabChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   // Lista de pantallas para cada tab
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -42,35 +48,6 @@ class _MainPageState extends State<MainPage> {
         // No necesitamos listener por ahora
       },
       builder: (context, state) {
-        // Mostrar skeleton mientras se carga el rol
-        if (state is GetUserRoleLoading || state is GetUserRoleIdle) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            body: const Center(child: CircularProgressIndicator()),
-            bottomNavigationBar: Container(
-              height: 70,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildSkeletonNavItem(),
-                  _buildSkeletonNavItem(),
-                  _buildSkeletonNavItem(),
-                ],
-              ),
-            ),
-          );
-        }
-
         // Determinar si el usuario es lender
         final isLender =
             state is GetUserRoleSuccess && state.role.toLowerCase() == 'lender';
@@ -139,11 +116,7 @@ class _MainPageState extends State<MainPage> {
   }) {
     final isSelected = _currentIndex == index;
     return InkWell(
-      onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
+      onTap: () => _onTabChanged(index),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Column(
@@ -169,35 +142,6 @@ class _MainPageState extends State<MainPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSkeletonNavItem() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            width: 40,
-            height: 11,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ],
       ),
     );
   }
