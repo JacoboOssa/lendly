@@ -1,7 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/availability.dart';
+import 'package:lendly_app/features/publish/presentation/bloc/create_product_bloc.dart';
+import 'package:lendly_app/main.dart';
 
 /// Pantalla para publicar un producto/objeto.
 /// Código separado en widgets pequeños: _Header, _ProductForm, _PhotoUploader, _FooterActions
@@ -60,7 +66,8 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _endDate ?? (_startDate ?? DateTime.now()),
-      firstDate: _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
+      firstDate:
+          _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
     );
     if (picked != null) setState(() => _endDate = picked);
@@ -68,21 +75,32 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile>? picked = await _picker.pickMultiImage(imageQuality: 80, maxWidth: 1200);
+      final List<XFile>? picked = await _picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
       if (picked != null && picked.isNotEmpty) {
         setState(() => _images.addAll(picked));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudieron seleccionar imágenes')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudieron seleccionar imágenes')),
+      );
     }
   }
 
   Future<void> _takePhoto() async {
     try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80, maxWidth: 1200);
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
       if (photo != null) setState(() => _images.add(photo));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo tomar la foto')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No se pudo tomar la foto')));
     }
   }
 
@@ -90,110 +108,199 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     setState(() => _images.removeAt(index));
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_termsAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debes aceptar términos y condiciones')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes aceptar términos y condiciones')),
+      );
       return;
     }
 
-    // Recolectar payload de ejemplo
-    final payload = {
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'category': _category,
-      'condition': _condition,
-      'price': _priceController.text.trim(),
-      'unit': _priceUnit,
-      'country': _countryController.text.trim(),
-      'city': _cityController.text.trim(),
-      'address': _addressController.text.trim(),
-      'features': _featuresController.text.trim(),
-      'images': _images.map((e) => e.path).toList(),
-      'availability': {
-        'start_date': _startDate?.toIso8601String(),
-        'end_date': _endDate?.toIso8601String(),
-      }
-    };
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Debes seleccionar fechas de disponibilidad'),
+        ),
+      );
+      return;
+    }
 
-    // Por ahora mostramos un dialog de éxito
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Producto creado (demo)'),
-        content: Text('Payload:\n${payload.toString()}'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
-        ],
-      ),
-    );
+    try {
+      // Obtener el usuario actual
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
+        return;
+      }
+
+      // Convertir precio a centavos
+      final priceText = _priceController.text.trim();
+      final priceValue = double.tryParse(priceText) ?? 0;
+      final priceInCents = (priceValue * 100).toInt();
+
+      // Obtener bytes de la primera imagen si existe
+      Uint8List? imageBytes;
+      if (_images.isNotEmpty) {
+        final file = File(_images.first.path);
+        imageBytes = await file.readAsBytes();
+      }
+
+      // Crear el producto
+      final product = Product(
+        ownerId: currentUser.id,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _category,
+        pricePerDayCents: priceInCents,
+        condition: _condition,
+        country: _countryController.text.trim(),
+        city: _cityController.text.trim(),
+        address: _addressController.text.trim(),
+        pickupNotes: _featuresController.text.trim(),
+      );
+
+      // Crear disponibilidad
+      final availability = Availability(
+        itemId: '', // Se asignará después de crear el producto
+        startDate: _startDate!,
+        endDate: _endDate!,
+        isBlocked: false,
+      );
+
+      // Enviar evento al BLoC
+      context.read<CreateProductBloc>().add(
+        CreateProductSubmitted(
+          product: product,
+          availabilities: [availability],
+          photoBytes: imageBytes,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
-          child: Column(
-            children: [
-              const _Header(),
-              const SizedBox(height: 12),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 6),
-                        _ProductForm(
-                          titleController: _titleController,
-                          priceController: _priceController,
-                          priceUnit: _priceUnit,
-                          onUnitChanged: (v) => setState(() => _priceUnit = v),
-                          countryController: _countryController,
-                          cityController: _cityController,
-                          addressController: _addressController,
-                          featuresController: _featuresController,
-                          descriptionController: _descriptionController,
-                          category: _category,
-                          onCategoryChanged: (v) => setState(() => _category = v),
-                          condition: _condition,
-                          onConditionChanged: (v) => setState(() => _condition = v),
-                          startDate: _startDate,
-                          endDate: _endDate,
-                          onPickStartDate: _pickStartDate,
-                          onPickEndDate: _pickEndDate,
-                        ),
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6.0),
-                          child: Text('Fotos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                        ),
-                        _PhotoUploader(
-                          images: _images,
-                          onPickImages: _pickImages,
-                          onTakePhoto: _takePhoto,
-                          onRemoveAt: _removeImageAt,
-                        ),
-                        const SizedBox(height: 18),
-                        Row(
-                          children: [
-                            Checkbox(value: _termsAccepted, onChanged: (v) => setState(() => _termsAccepted = v ?? false)),
-                            const Expanded(child: Text('Terminos y condiciones')),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        _FooterActions(onSubmit: _submit),
-                        const SizedBox(height: 30),
-                      ],
+    return BlocListener<CreateProductBloc, CreateProductState>(
+      listener: (context, state) {
+        if (state is CreateProductLoading) {
+          // Mostrar indicador de carga
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is CreateProductSuccess) {
+          // Cerrar indicador de carga
+          Navigator.of(context).pop();
+
+          // Mostrar mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Producto publicado exitosamente!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Volver a la pantalla anterior
+          Navigator.of(context).pop();
+        } else if (state is CreateProductError) {
+          // Cerrar indicador de carga si está abierto
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+
+          // Mostrar error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
+            child: Column(
+              children: [
+                const _Header(),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 6),
+                          _ProductForm(
+                            titleController: _titleController,
+                            priceController: _priceController,
+                            priceUnit: _priceUnit,
+                            onUnitChanged: (v) =>
+                                setState(() => _priceUnit = v),
+                            countryController: _countryController,
+                            cityController: _cityController,
+                            addressController: _addressController,
+                            featuresController: _featuresController,
+                            descriptionController: _descriptionController,
+                            category: _category,
+                            onCategoryChanged: (v) =>
+                                setState(() => _category = v),
+                            condition: _condition,
+                            onConditionChanged: (v) =>
+                                setState(() => _condition = v),
+                            startDate: _startDate,
+                            endDate: _endDate,
+                            onPickStartDate: _pickStartDate,
+                            onPickEndDate: _pickEndDate,
+                          ),
+                          const SizedBox(height: 12),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6.0),
+                            child: Text(
+                              'Fotos',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          _PhotoUploader(
+                            images: _images,
+                            onPickImages: _pickImages,
+                            onTakePhoto: _takePhoto,
+                            onRemoveAt: _removeImageAt,
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _termsAccepted,
+                                onChanged: (v) =>
+                                    setState(() => _termsAccepted = v ?? false),
+                              ),
+                              const Expanded(
+                                child: Text('Terminos y condiciones'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _FooterActions(onSubmit: _submit),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -218,13 +325,24 @@ class _Header extends StatelessWidget {
           ),
           child: IconButton(
             padding: EdgeInsets.zero,
-            icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Color(0xFF1F1F1F)),
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 16,
+              color: Color(0xFF1F1F1F),
+            ),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
         ),
         const SizedBox(width: 12),
         const Expanded(
-          child: Text('Añadir producto', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F1F1F))),
+          child: Text(
+            'Añadir producto',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1F1F1F),
+            ),
+          ),
         ),
       ],
     );
@@ -272,19 +390,31 @@ class _ProductForm extends StatelessWidget {
   final VoidCallback onPickEndDate;
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
-        filled: true,
-        fillColor: const Color(0xFFF5F5F5),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
+    filled: true,
+    fillColor: const Color(0xFFF5F5F5),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  );
 
-  String _formatDate(DateTime? d) => d == null ? '' : '${d.year}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+  String _formatDate(DateTime? d) => d == null
+      ? ''
+      : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
-    const categories = ['Herramientas', 'Electrónica', 'Hogar', 'Transporte', 'Deportes', 'Otro'];
+    const categories = [
+      'Herramientas',
+      'Electrónica',
+      'Hogar',
+      'Transporte',
+      'Deportes',
+      'Otro',
+    ];
     const conditions = ['Nuevo', 'Como nuevo', 'Usado', 'Con detalles'];
 
     return Column(
@@ -293,7 +423,8 @@ class _ProductForm extends StatelessWidget {
         TextFormField(
           controller: titleController,
           decoration: _inputDecoration('Título del objeto'),
-          validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa el título' : null,
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? 'Ingresa el título' : null,
         ),
         const SizedBox(height: 12),
 
@@ -302,11 +433,19 @@ class _ProductForm extends StatelessWidget {
           children: [
             Expanded(
               child: DecoratedBox(
-                decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: DropdownButtonFormField<String>(
                   value: category,
-                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                  items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  items: categories
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
                   onChanged: onCategoryChanged,
                   hint: const Text('Categoría'),
                 ),
@@ -315,12 +454,22 @@ class _ProductForm extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DecoratedBox(
-                decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: DropdownButtonFormField<String>(
                   value: condition,
-                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                  items: conditions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (v) { if (v != null) onConditionChanged(v); },
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  items: conditions
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) onConditionChanged(v);
+                  },
                 ),
               ),
             ),
@@ -332,7 +481,9 @@ class _ProductForm extends StatelessWidget {
           controller: descriptionController,
           decoration: _inputDecoration('Descripción detallada'),
           maxLines: 4,
-          validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa una descripción' : null,
+          validator: (v) => (v == null || v.trim().isEmpty)
+              ? 'Ingresa una descripción'
+              : null,
         ),
         const SizedBox(height: 12),
 
@@ -345,18 +496,37 @@ class _ProductForm extends StatelessWidget {
                 controller: priceController,
                 keyboardType: TextInputType.number,
                 decoration: _inputDecoration('Precio'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa el precio' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Ingresa el precio'
+                    : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               flex: 2,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: DropdownButtonFormField<String>(
                   value: priceUnit,
-                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                  items: const ['/Hora', '/Día', '/Semana'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  isDense: true,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: const ['/Hora', '/Día', '/Semana']
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e, style: TextStyle(fontSize: 14)),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) {
                     if (v != null) onUnitChanged(v);
                   },
@@ -370,16 +540,33 @@ class _ProductForm extends StatelessWidget {
         // Country / City / Address
         Row(
           children: [
-            Expanded(child: TextFormField(controller: countryController, decoration: _inputDecoration('País'))),
+            Expanded(
+              child: TextFormField(
+                controller: countryController,
+                decoration: _inputDecoration('País'),
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: TextFormField(controller: cityController, decoration: _inputDecoration('Ciudad'))),
+            Expanded(
+              child: TextFormField(
+                controller: cityController,
+                decoration: _inputDecoration('Ciudad'),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
-        TextFormField(controller: addressController, decoration: _inputDecoration('Dirección o punto de recogida')),
+        TextFormField(
+          controller: addressController,
+          decoration: _inputDecoration('Dirección o punto de recogida'),
+        ),
         const SizedBox(height: 12),
 
-        TextFormField(controller: featuresController, decoration: _inputDecoration('Características (opcional)'), maxLines: 2),
+        TextFormField(
+          controller: featuresController,
+          decoration: _inputDecoration('Características (opcional)'),
+          maxLines: 2,
+        ),
         const SizedBox(height: 12),
 
         // Availability dates
@@ -391,8 +578,11 @@ class _ProductForm extends StatelessWidget {
                 child: AbsorbPointer(
                   child: TextFormField(
                     decoration: _inputDecoration('Disponibilidad desde'),
-                    controller: TextEditingController(text: _formatDate(startDate)),
-                    validator: (v) => (startDate == null) ? 'Selecciona fecha inicio' : null,
+                    controller: TextEditingController(
+                      text: _formatDate(startDate),
+                    ),
+                    validator: (v) =>
+                        (startDate == null) ? 'Selecciona fecha inicio' : null,
                   ),
                 ),
               ),
@@ -404,8 +594,11 @@ class _ProductForm extends StatelessWidget {
                 child: AbsorbPointer(
                   child: TextFormField(
                     decoration: _inputDecoration('Disponibilidad hasta'),
-                    controller: TextEditingController(text: _formatDate(endDate)),
-                    validator: (v) => (endDate == null) ? 'Selecciona fecha fin' : null,
+                    controller: TextEditingController(
+                      text: _formatDate(endDate),
+                    ),
+                    validator: (v) =>
+                        (endDate == null) ? 'Selecciona fecha fin' : null,
                   ),
                 ),
               ),
@@ -418,7 +611,13 @@ class _ProductForm extends StatelessWidget {
 }
 
 class _PhotoUploader extends StatelessWidget {
-  const _PhotoUploader({Key? key, required this.images, required this.onPickImages, required this.onTakePhoto, required this.onRemoveAt}) : super(key: key);
+  const _PhotoUploader({
+    Key? key,
+    required this.images,
+    required this.onPickImages,
+    required this.onTakePhoto,
+    required this.onRemoveAt,
+  }) : super(key: key);
 
   final List<XFile> images;
   final Future<void> Function() onPickImages;
@@ -437,11 +636,26 @@ class _PhotoUploader extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemBuilder: (c, i) => Stack(
                 children: [
-                  ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(File(images[i].path), width: 100, height: 100, fit: BoxFit.cover)),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(images[i].path),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                   Positioned(
                     right: 4,
                     top: 4,
-                    child: GestureDetector(onTap: () => onRemoveAt(i), child: const CircleAvatar(radius: 12, backgroundColor: Colors.white, child: Icon(Icons.close, size: 16))),
+                    child: GestureDetector(
+                      onTap: () => onRemoveAt(i),
+                      child: const CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.close, size: 16),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -452,9 +666,17 @@ class _PhotoUploader extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              ElevatedButton.icon(onPressed: onPickImages, icon: const Icon(Icons.photo_library), label: const Text('Agregar')), 
+              ElevatedButton.icon(
+                onPressed: onPickImages,
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Agregar'),
+              ),
               const SizedBox(width: 8),
-              OutlinedButton.icon(onPressed: onTakePhoto, icon: const Icon(Icons.camera_alt), label: const Text('Tomar')),
+              OutlinedButton.icon(
+                onPressed: onTakePhoto,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Tomar'),
+              ),
             ],
           ),
         ],
@@ -469,8 +691,22 @@ class _PhotoUploader extends StatelessWidget {
           builder: (_) => SafeArea(
             child: Wrap(
               children: [
-                ListTile(leading: const Icon(Icons.photo_library), title: const Text('Seleccionar fotos'), onTap: () { Navigator.of(context).pop(); onPickImages(); }),
-                ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Tomar foto'), onTap: () { Navigator.of(context).pop(); onTakePhoto(); }),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Seleccionar fotos'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onPickImages();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Tomar foto'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onTakePhoto();
+                  },
+                ),
               ],
             ),
           ),
@@ -482,7 +718,10 @@ class _PhotoUploader extends StatelessWidget {
           children: const [
             Icon(Icons.upload_file, size: 28, color: Color(0xFF9E9E9E)),
             SizedBox(height: 8),
-            Text('Subir fotos del objeto', style: TextStyle(color: Color(0xFF9E9E9E))),
+            Text(
+              'Subir fotos del objeto',
+              style: TextStyle(color: Color(0xFF9E9E9E)),
+            ),
           ],
         ),
       ),
@@ -503,10 +742,19 @@ class _FooterActions extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF98A1BC),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         onPressed: onSubmit,
-        child: const Text('Subir', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+        child: const Text(
+          'Subir',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -514,7 +762,8 @@ class _FooterActions extends StatelessWidget {
 
 /// Simple visual container with dashed border used as upload area.
 class DottedBorderContainer extends StatelessWidget {
-  const DottedBorderContainer({Key? key, required this.child}) : super(key: key);
+  const DottedBorderContainer({Key? key, required this.child})
+    : super(key: key);
 
   final Widget child;
 
@@ -526,7 +775,10 @@ class DottedBorderContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8E8E8), style: BorderStyle.solid),
+        border: Border.all(
+          color: const Color(0xFFE8E8E8),
+          style: BorderStyle.solid,
+        ),
       ),
       child: Center(child: child),
     );

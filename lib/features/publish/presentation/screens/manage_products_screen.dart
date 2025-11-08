@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bloc.dart';
+import 'package:lendly_app/main.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -8,7 +12,18 @@ class ManageProductsScreen extends StatefulWidget {
 }
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
-  final List<_ProductItem> _products = [];
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  void _loadProducts() {
+    final currentUser = supabase.auth.currentUser;
+    if (currentUser != null) {
+      context.read<ManageProductsBloc>().add(LoadUserProducts(currentUser.id));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,95 +52,87 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Botón para cargar datos demo (quitar cuando haya backend)
-              SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: _loadDemoIfEmpty,
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF98A1BC)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          child: BlocConsumer<ManageProductsBloc, ManageProductsState>(
+            listener: (context, state) {
+              if (state is ManageProductsError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
                   ),
-                  child: const Text(
-                    'Cargar datos demo (quitar en prod)',
-                    style: TextStyle(
-                      color: Color(0xFF98A1BC),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+                );
+              }
+              // Ya no necesitamos recargar manualmente aquí porque el BLoC
+              // hace la operación + recarga automáticamente después del spinner
+            },
+            builder: (context, state) {
+              // Skeleton solo en carga inicial
+              if (state is ManageProductsLoading && state.isInitialLoad) {
+                return _ProductsSkeletonLoader();
+              }
 
-              Expanded(
-                child: _products.isEmpty
-                    ? const _EmptyState()
-                    : ListView.separated(
-                        itemCount: _products.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final p = _products[index];
-                          return _ProductCard(
-                            product: p,
-                            onEdit: () => _editProduct(index),
-                            onDelete: () => _deleteProduct(index),
-                          );
-                        },
+              if (state is ManageProductsLoaded) {
+                if (state.products.isEmpty) {
+                  return const _EmptyState();
+                }
+                return Stack(
+                  children: [
+                    _ProductsList(
+                      products: state.products,
+                      onEdit: _editProduct,
+                      onDelete: _deleteProduct,
+                    ),
+                    // Spinner durante operaciones (actualizar, eliminar, toggle)
+                    if (state.isProcessing)
+                      Container(
+                        color: Colors.black.withOpacity(0.3),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF5B5670),
+                            ),
+                          ),
+                        ),
                       ),
-              ),
-            ],
+                  ],
+                );
+              }
+
+              return const _EmptyState();
+            },
           ),
         ),
       ),
     );
   }
 
-  void _loadDemoIfEmpty() {
-    if (_products.isNotEmpty) return;
-    setState(() {
-      // DEMO: productos mock. Reemplazar por fetch desde backend cuando exista.
-      _products.addAll([
-        _ProductItem(
-          id: '1',
-          name: 'Cámara Canon EOS',
-          category: 'Tecnología',
-          priceLabel: r'$60.000/día',
-          imageUrl: null,
-        ),
-        _ProductItem(
-          id: '2',
-          name: 'Taladro Bosch',
-          category: 'Herramientas',
-          priceLabel: r'$45.000/día',
-          imageUrl: null,
-        ),
-        _ProductItem(
-          id: '3',
-          name: 'Vestido de Gala',
-          category: 'Ropa',
-          priceLabel: r'$120.000/evento',
-          imageUrl: null,
-        ),
-      ]);
-    });
+  void _deleteProduct(Product product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar producto'),
+        content: Text('¿Estás seguro de eliminar "${product.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && product.id != null) {
+      context.read<ManageProductsBloc>().add(DeleteProduct(product.id!));
+    }
   }
 
-  void _deleteProduct(int index) {
-    setState(() {
-      _products.removeAt(index);
-    });
-  }
-
-  void _editProduct(int index) async {
-    final item = _products[index];
-
-    final updated = await showModalBottomSheet<_ProductItem>(
+  void _editProduct(Product product) async {
+    final updated = await showModalBottomSheet<Product>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -136,14 +143,12 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: _EditProductSheet(initial: item),
+        child: _EditProductSheet(product: product),
       ),
     );
 
     if (updated != null) {
-      setState(() {
-        _products[index] = updated;
-      });
+      context.read<ManageProductsBloc>().add(UpdateProduct(updated));
     }
   }
 }
@@ -169,8 +174,36 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
+class _ProductsList extends StatelessWidget {
+  final List<Product> products;
+  final Function(Product) onEdit;
+  final Function(Product) onDelete;
+
+  const _ProductsList({
+    required this.products,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      itemCount: products.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return _ProductCard(
+          product: product,
+          onEdit: () => onEdit(product),
+          onDelete: () => onDelete(product),
+        );
+      },
+    );
+  }
+}
+
 class _ProductCard extends StatelessWidget {
-  final _ProductItem product;
+  final Product product;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -179,6 +212,15 @@ class _ProductCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  String _formatPrice(int priceInCents) {
+    final price = priceInCents / 100;
+    return '\$${price.toStringAsFixed(0)}/día';
+  }
+
+  void _toggleAvailability(BuildContext context) {
+    context.read<ManageProductsBloc>().add(ToggleProductAvailability(product));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,15 +248,44 @@ class _ProductCard extends StatelessWidget {
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: product.imageUrl == null
+              child: product.photoUrl == null
                   ? const Center(
                       child: Icon(Icons.image, color: Color(0xFFBDBDBD)),
                     )
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        product.imageUrl!,
+                        product.photoUrl!,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            // Imagen cargada completamente
+                            return child;
+                          }
+                          // Mostrar skeleton mientras carga
+                          return Container(
+                            color: Colors.grey[300],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.grey[400]!,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Color(0xFFBDBDBD),
+                          ),
+                        ),
                       ),
                     ),
             ),
@@ -223,17 +294,64 @@ class _ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2C2C2C),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2C2C2C),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: product.isAvailable
+                                    ? const Color(0xFFE8F5E9)
+                                    : const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                product.isAvailable
+                                    ? 'Disponible'
+                                    : 'No disponible',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: product.isAvailable
+                                      ? const Color(0xFF2E7D32)
+                                      : const Color(0xFFC62828),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Transform.scale(
+                        scale: 0.85,
+                        child: Switch(
+                          value: product.isAvailable,
+                          onChanged: (_) => _toggleAvailability(context),
+                          activeColor: const Color(0xFF2E7D32),
+                          activeTrackColor: const Color(0xFFC8E6C9),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product.category,
+                    product.category ?? 'Sin categoría',
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF6D6D6D),
@@ -241,7 +359,7 @@ class _ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    product.priceLabel,
+                    _formatPrice(product.pricePerDayCents),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -303,41 +421,39 @@ class _ProductCard extends StatelessWidget {
 }
 
 class _EditProductSheet extends StatefulWidget {
-  const _EditProductSheet({required this.initial});
+  const _EditProductSheet({required this.product});
 
-  final _ProductItem initial;
+  final Product product;
 
   @override
   State<_EditProductSheet> createState() => _EditProductSheetState();
 }
 
 class _EditProductSheetState extends State<_EditProductSheet> {
-  // Campos similares al formulario de publicación
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
-  String _priceUnit = '/Día';
   String? _category;
   String _condition = 'Nuevo';
   final _countryController = TextEditingController();
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
-  final _featuresController = TextEditingController();
-  DateTime? _startDate;
-  DateTime? _endDate;
+  final _pickupNotesController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _titleController.text = widget.initial.name;
-    _priceController.text = widget.initial.priceLabel.replaceAll(
-      RegExp(r'[^0-9]'),
-      '',
-    );
-    _category = widget.initial.category;
-    // Los demás campos quedan vacíos para demo, ya que no existen en _ProductItem
+    _titleController.text = widget.product.title;
+    _descriptionController.text = widget.product.description ?? '';
+    _priceController.text = (widget.product.pricePerDayCents / 100).toString();
+    _category = widget.product.category;
+    _condition = widget.product.condition ?? 'Nuevo';
+    _countryController.text = widget.product.country ?? '';
+    _cityController.text = widget.product.city ?? '';
+    _addressController.text = widget.product.address ?? '';
+    _pickupNotesController.text = widget.product.pickupNotes ?? '';
   }
 
   @override
@@ -348,7 +464,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
     _countryController.dispose();
     _cityController.dispose();
     _addressController.dispose();
-    _featuresController.dispose();
+    _pickupNotesController.dispose();
     super.dispose();
   }
 
@@ -364,42 +480,33 @@ class _EditProductSheetState extends State<_EditProductSheet> {
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   );
 
-  String _formatDate(DateTime? d) => d == null
-      ? ''
-      : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  Future<void> _pickStartDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-    );
-    if (picked != null) setState(() => _startDate = picked);
-  }
-
-  Future<void> _pickEndDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _endDate ?? (_startDate ?? DateTime.now()),
-      firstDate:
-          _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-    );
-    if (picked != null) setState(() => _endDate = picked);
-  }
-
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    final priceLabel = '${_priceController.text.trim()}$_priceUnit';
-    Navigator.pop(
-      context,
-      widget.initial.copyWith(
-        name: _titleController.text.trim(),
-        category: _category ?? widget.initial.category,
-        priceLabel: priceLabel,
-      ),
+
+    final priceText = _priceController.text.trim();
+    final priceValue = double.tryParse(priceText) ?? 0;
+    final priceInCents = (priceValue * 100).toInt();
+
+    final updatedProduct = Product(
+      id: widget.product.id,
+      ownerId: widget.product.ownerId,
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _category ?? widget.product.category,
+      pricePerDayCents: priceInCents,
+      condition: _condition,
+      country: _countryController.text.trim(),
+      city: _cityController.text.trim(),
+      address: _addressController.text.trim(),
+      pickupNotes: _pickupNotesController.text.trim(),
+      photoUrl: widget.product.photoUrl,
+      active: widget.product.active,
+      isAvailable: widget.product.isAvailable,
+      ratingAvg: widget.product.ratingAvg,
+      createdAt: widget.product.createdAt,
     );
+
+    Navigator.pop(context, updatedProduct);
   }
 
   @override
@@ -525,53 +632,14 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                     maxLines: 4,
                   ),
                   const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: TextFormField(
-                          controller: _priceController,
-                          keyboardType: TextInputType.number,
-                          decoration: _inputDecoration('Precio'),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Ingresa el precio'
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: _priceUnit,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                            ),
-                            items: const ['/Hora', '/Día', '/Semana']
-                                .map(
-                                  (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              if (v != null) setState(() => _priceUnit = v);
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                  TextFormField(
+                    controller: _priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: _inputDecoration('Precio por día'),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Ingresa el precio'
+                        : null,
                   ),
-
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -599,48 +667,12 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
-                    controller: _featuresController,
-                    decoration: _inputDecoration('Características (opcional)'),
+                    controller: _pickupNotesController,
+                    decoration: _inputDecoration(
+                      'Notas de recogida (opcional)',
+                    ),
                     maxLines: 2,
                   ),
-
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _pickStartDate,
-                          child: AbsorbPointer(
-                            child: TextFormField(
-                              decoration: _inputDecoration(
-                                'Disponibilidad desde',
-                              ),
-                              controller: TextEditingController(
-                                text: _formatDate(_startDate),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _pickEndDate,
-                          child: AbsorbPointer(
-                            child: TextFormField(
-                              decoration: _inputDecoration(
-                                'Disponibilidad hasta',
-                              ),
-                              controller: TextEditingController(
-                                text: _formatDate(_endDate),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
                   const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
@@ -674,33 +706,100 @@ class _EditProductSheetState extends State<_EditProductSheet> {
   }
 }
 
-class _ProductItem {
-  final String id;
-  final String name;
-  final String category;
-  final String priceLabel; // ej: $60.000/día
-  final String? imageUrl;
-
-  _ProductItem({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.priceLabel,
-    required this.imageUrl,
-  });
-
-  _ProductItem copyWith({
-    String? name,
-    String? category,
-    String? priceLabel,
-    String? imageUrl,
-  }) {
-    return _ProductItem(
-      id: id,
-      name: name ?? this.name,
-      category: category ?? this.category,
-      priceLabel: priceLabel ?? this.priceLabel,
-      imageUrl: imageUrl ?? this.imageUrl,
+// Widget Skeleton Loader para productos
+class _ProductsSkeletonLoader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE8E8E8)),
+          ),
+          child: Row(
+            children: [
+              // Skeleton de imagen
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Skeleton de contenido
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Skeleton título
+                    Container(
+                      height: 16,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Skeleton descripción
+                    Container(
+                      height: 12,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Skeleton precio y botones
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          height: 14,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
