@@ -18,4 +18,9 @@ class HomeRepositoryImpl extends HomeRepository {
       throw Exception('Error al obtener productos disponibles: $e');
     }
   }
+
+  @override
+  Stream<String> listenItemsUpdates() {
+    return homeDataSource.listenItemsUpdates();
+  }
 }

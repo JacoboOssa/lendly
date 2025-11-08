@@ -4,4 +4,5 @@ abstract class HomeRepository {
   Future<String?> getUserRole();
 
   Future<List<Product>> getAvailableProducts();
+  Stream<String> listenItemsUpdates();
 }
