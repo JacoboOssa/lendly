@@ -61,26 +61,13 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                     backgroundColor: Colors.red,
                   ),
                 );
-              } else if (state is ProductDeleted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Producto eliminado exitosamente'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                _loadProducts();
-              } else if (state is ProductUpdated) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Producto actualizado exitosamente'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                _loadProducts();
               }
+              // Ya no necesitamos recargar manualmente aquí porque el BLoC
+              // hace la operación + recarga automáticamente después del spinner
             },
             builder: (context, state) {
-              if (state is ManageProductsLoading) {
+              // Skeleton solo en carga inicial
+              if (state is ManageProductsLoading && state.isInitialLoad) {
                 return _ProductsSkeletonLoader();
               }
 
@@ -88,10 +75,26 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                 if (state.products.isEmpty) {
                   return const _EmptyState();
                 }
-                return _ProductsList(
-                  products: state.products,
-                  onEdit: _editProduct,
-                  onDelete: _deleteProduct,
+                return Stack(
+                  children: [
+                    _ProductsList(
+                      products: state.products,
+                      onEdit: _editProduct,
+                      onDelete: _deleteProduct,
+                    ),
+                    // Spinner durante operaciones (actualizar, eliminar, toggle)
+                    if (state.isProcessing)
+                      Container(
+                        color: Colors.black.withOpacity(0.3),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF5B5670),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 );
               }
 
@@ -215,6 +218,10 @@ class _ProductCard extends StatelessWidget {
     return '\$${price.toStringAsFixed(0)}/día';
   }
 
+  void _toggleAvailability(BuildContext context) {
+    context.read<ManageProductsBloc>().add(ToggleProductAvailability(product));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -287,13 +294,60 @@ class _ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2C2C2C),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2C2C2C),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: product.isAvailable
+                                    ? const Color(0xFFE8F5E9)
+                                    : const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                product.isAvailable
+                                    ? 'Disponible'
+                                    : 'No disponible',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: product.isAvailable
+                                      ? const Color(0xFF2E7D32)
+                                      : const Color(0xFFC62828),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Transform.scale(
+                        scale: 0.85,
+                        child: Switch(
+                          value: product.isAvailable,
+                          onChanged: (_) => _toggleAvailability(context),
+                          activeColor: const Color(0xFF2E7D32),
+                          activeTrackColor: const Color(0xFFC8E6C9),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
