@@ -13,6 +13,8 @@ import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bl
 import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
+import 'package:lendly_app/features/rating/presentation/screens/rating_renter.dart';
+import 'package:lendly_app/features/rating/presentation/screens/rating_owner_product.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -71,6 +73,19 @@ class MyApp extends StatelessWidget {
           create: (_) => AllProductsBloc(),
           child: AllProductsScreen(),
         ),
+        // Rating screens (accept arguments via Navigator.pushNamed arguments)
+        '/rating/renter': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          final renterName = args != null && args.containsKey('renterName') ? args['renterName'] as String : '';
+          return RatingRenterScreen(renterName: renterName);
+        },
+
+        '/rating/owner_product': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          final ownerName = args != null && args.containsKey('ownerName') ? args['ownerName'] as String : '';
+          final productTitle = args != null && args.containsKey('productTitle') ? args['productTitle'] as String : '';
+          return RatingOwnerProductScreen(ownerName: ownerName, productTitle: productTitle);
+        },
       },
     );
   }
