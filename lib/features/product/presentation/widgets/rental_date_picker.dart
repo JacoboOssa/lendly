@@ -197,88 +197,135 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 			minChildSize: 0.4,
 			maxChildSize: 0.95,
 			builder: (context, scrollController) {
-				return Container(
-					decoration: BoxDecoration(
-						color: Colors.white,
-						borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-					),
-					child: SingleChildScrollView(
-						controller: scrollController,
-						child: Padding(
-							padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-							child: Column(
-								mainAxisSize: MainAxisSize.min,
-								children: [
-									Row(
-										children: [
-											IconButton(
-												onPressed: () => Navigator.of(context).pop(),
-												icon: const Icon(Icons.close),
+								return Stack(
+									clipBehavior: Clip.none,
+									children: [
+										Container(
+											decoration: BoxDecoration(
+												color: Colors.white,
+												borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
 											),
-											const Spacer(),
-											const Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold)),
-											const Spacer(),
-											const SizedBox(width: 48),
-										],
-									),
-									const SizedBox(height: 8),
-									Container(
-										margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-										padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-										decoration: BoxDecoration(
-											color: Colors.grey[100],
-											borderRadius: BorderRadius.circular(12),
-										),
-										child: Row(
-											mainAxisAlignment: MainAxisAlignment.spaceBetween,
-											children: [
-												Column(
-													crossAxisAlignment: CrossAxisAlignment.start,
-													children: [
-														const Text('Inicio', style: TextStyle(fontSize: 12, color: Colors.grey)),
-														const SizedBox(height: 4),
-														Text(start != null ? '${start!.day}/${start!.month}/${start!.year}' : '--', style: const TextStyle(fontWeight: FontWeight.w600)),
-													],
-												),
-												Column(
-													crossAxisAlignment: CrossAxisAlignment.end,
-													children: [
-														const Text('Fin', style: TextStyle(fontSize: 12, color: Colors.grey)),
-														const SizedBox(height: 4),
-														Text(end != null ? '${end!.day}/${end!.month}/${end!.year}' : '--', style: const TextStyle(fontWeight: FontWeight.w600)),
-													],
-												),
-											],
-										),
-									),
-									// Two months stacked like in the design
-									_buildMonth(firstMonth),
-									const SizedBox(height: 8),
-									_buildMonth(DateTime(firstMonth.year, firstMonth.month + 1)),
-									const SizedBox(height: 24),
-									Padding(
-										padding: const EdgeInsets.symmetric(horizontal: 12.0),
-										child: ElevatedButton(
-											style: ElevatedButton.styleFrom(
-												minimumSize: const Size.fromHeight(48),
-												shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-												backgroundColor: start != null && end != null ? Colors.deepPurple[700] : Colors.grey[400],
+											child: Column(
+												mainAxisSize: MainAxisSize.min,
+												children: [
+													// small handle
+													Padding(
+														padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+														child: Container(
+															width: 56,
+															height: 4,
+															decoration: BoxDecoration(
+																color: Colors.grey[300],
+																borderRadius: BorderRadius.circular(2),
+															),
+														),
+													),
+
+													// title centered
+													Padding(
+														padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+														child: Center(
+															child: Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+														),
+													),
+
+													// start/end summary
+													Padding(
+														padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+														child: Container(
+															margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+															padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+															decoration: BoxDecoration(
+																color: Colors.grey[100],
+																borderRadius: BorderRadius.circular(12),
+															),
+															child: Row(
+																mainAxisAlignment: MainAxisAlignment.spaceBetween,
+																children: [
+																	Column(
+																		crossAxisAlignment: CrossAxisAlignment.start,
+																		children: [
+																			const Text('Inicio', style: TextStyle(fontSize: 12, color: Colors.grey)),
+																			const SizedBox(height: 4),
+																			Text(start != null ? '${start!.day}/${start!.month}/${start!.year}' : '--', style: const TextStyle(fontWeight: FontWeight.w600)),
+																		],
+																	),
+																	Column(
+																		crossAxisAlignment: CrossAxisAlignment.end,
+																		children: [
+																			const Text('Fin', style: TextStyle(fontSize: 12, color: Colors.grey)),
+																			const SizedBox(height: 4),
+																			Text(end != null ? '${end!.day}/${end!.month}/${end!.year}' : '--', style: const TextStyle(fontWeight: FontWeight.w600)),
+																		],
+																	),
+																],
+															),
+														),
+													),
+
+													// scrollable months
+													Expanded(
+														child: SingleChildScrollView(
+															controller: scrollController,
+															child: Padding(
+																padding: const EdgeInsets.symmetric(horizontal: 8.0),
+																child: Column(
+																	children: [
+																		_buildMonth(firstMonth),
+																		const SizedBox(height: 8),
+																		_buildMonth(DateTime(firstMonth.year, firstMonth.month + 1)),
+																		const SizedBox(height: 16),
+																	],
+																),
+															),
+														),
+													),
+
+													SafeArea(
+														top: false,
+														child: Padding(
+															padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+															child: ElevatedButton(
+																style: ElevatedButton.styleFrom(
+																	minimumSize: const Size.fromHeight(52),
+																	shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+																	backgroundColor: start != null && end != null ? Colors.deepPurple[700] : Colors.grey[400],
+																),
+																onPressed: start != null && end != null
+																		? () {
+																				final range = DateTimeRange(start: start!, end: end!);
+																				Navigator.of(context).pop(range);
+																			}
+																		: null,
+																child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
+															),
+														),
+													),
+												],
 											),
-											onPressed: start != null && end != null
-													? () {
-															final range = DateTimeRange(start: start!, end: end!);
-															Navigator.of(context).pop(range);
-														}
-													: null,
-											child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
 										),
-									),
-									const SizedBox(height: 24),
-								],
-							),
-						),
-					),
-				);
+
+										// floating close button positioned above the top-right of the sheet
+										Positioned(
+											right: 10,
+											top: -50,
+											child: Material(
+												color: Colors.white,
+												shape: const CircleBorder(),
+												elevation: 6,
+												child: InkWell(
+													borderRadius: BorderRadius.circular(999),
+													onTap: () => Navigator.of(context).pop(),
+													child: const SizedBox(
+														width: 40,
+														height: 40,
+														child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF2C2C2C))),
+													),
+												),
+											),
+										),
+									],
+								);
 			},
 		);
 	}
