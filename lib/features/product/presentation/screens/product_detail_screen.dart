@@ -463,62 +463,68 @@ class _ActionButton extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Precio',
-                style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                price,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF5B5670),
-                ),
-              ),
-            ],
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
           ),
-          const SizedBox(width: 24),
-          Expanded(
-              child: ElevatedButton(
-              onPressed: () async {
+          child: Material(
+            color: const Color(0xFF5B5670),
+            borderRadius: BorderRadius.circular(28),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: () async {
                 final DateTimeRange? range = await showRentalDateRangePicker(context);
-                if (range == null) {
+                if (range != null) {
+                  // Aquí iría la lógica para proceder con el alquiler
+                  // Por ahora, solo mostramos un snackbar de confirmación
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Selección cancelada')),
+                    SnackBar(
+                      content: Text(
+                        'Has seleccionado del ${range.start.day}/${range.start.month}/${range.start.year} '
+                        'al ${range.end.day}/${range.end.month}/${range.end.year}',
+                      ),
+                    ),
                   );
-                  return;
                 }
-
-                final start = '${range.start.day}/${range.start.month}/${range.start.year}';
-                final end = '${range.end.day}/${range.end.month}/${range.end.year}';
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Fechas: $start - $end')),
-                );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5B5670),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Precio a la izquierda
+                    Row(
+                      children: [
+                        const SizedBox(width: 4),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Precio', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                            const SizedBox(height: 4),
+                            Text(price, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    // Texto derecho (ahora decoración, el tap es en todo el pill)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Text('Alquilar ahora', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
                 ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Alquilar ahora',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
