@@ -145,8 +145,8 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 			if (inRange) {
 				if (isStart || isEnd) {
 					deco = BoxDecoration(
-						color: Colors.deepPurple[700],
-						shape: BoxShape.circle,
+						color: const Color(0xFF5B5670),
+						shape: BoxShape.rectangle,
 					);
 					textStyle = const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
 				} else {
@@ -292,7 +292,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 																style: ElevatedButton.styleFrom(
 																	minimumSize: const Size.fromHeight(52),
 																	shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-																	backgroundColor: start != null && end != null ? Colors.deepPurple[700] : Colors.grey[400],
+																	backgroundColor: start != null && end != null ? const Color(0xFF5B5670) : Colors.grey[400],
 																),
 																onPressed: start != null && end != null
 																		? () {
@@ -301,7 +301,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 																			Navigator.of(popCtx).pop(range);
 																		}
 																		: null,
-																child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
+																child: const Text('Confirmar', style: TextStyle(fontSize: 16, color: Colors.white)),
 															),
 														),
 													),
@@ -327,7 +327,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
                             child: const SizedBox(
                               width: 40,
                               height: 40,
-                              child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF2C2C2C))),
+                              child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF5B5670))),
                             ),
                           ),
                         ),
