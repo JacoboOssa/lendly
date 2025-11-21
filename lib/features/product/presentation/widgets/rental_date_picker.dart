@@ -14,6 +14,7 @@ Future<DateTimeRange?> showRentalDateRangePicker(
 		isScrollControlled: true,
 		backgroundColor: Colors.transparent,
 		builder: (ctx) => RentalDatePickerDialog(
+			parentContext: ctx,
 			initialStart: initialStart,
 			initialEnd: initialEnd,
 		),
@@ -23,9 +24,11 @@ Future<DateTimeRange?> showRentalDateRangePicker(
 class RentalDatePickerDialog extends StatefulWidget {
 	final DateTime? initialStart;
 	final DateTime? initialEnd;
+	final BuildContext? parentContext;
 
 	const RentalDatePickerDialog({
 		Key? key,
+		this.parentContext,
 		this.initialStart,
 		this.initialEnd,
 	}) : super(key: key);
@@ -293,9 +296,10 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 																),
 																onPressed: start != null && end != null
 																		? () {
-																				final range = DateTimeRange(start: start!, end: end!);
-																				Navigator.of(context).pop(range);
-																			}
+																			final range = DateTimeRange(start: start!, end: end!);
+																			final popCtx = widget.parentContext ?? context;
+																			Navigator.of(popCtx).pop(range);
+																		}
 																		: null,
 																child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
 															),
@@ -305,25 +309,30 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 											),
 										),
 
-										// floating close button positioned above the top-right of the sheet
-										Positioned(
-											right: 10,
-											top: -50,
-											child: Material(
-												color: Colors.white,
-												shape: const CircleBorder(),
-												elevation: 6,
-												child: InkWell(
-													borderRadius: BorderRadius.circular(999),
-													onTap: () => Navigator.of(context).pop(),
-													child: const SizedBox(
-														width: 40,
-														height: 40,
-														child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF2C2C2C))),
-													),
-												),
-											),
-										),
+                    Positioned(
+                      right: 10,
+                      top: 20,
+                      child: Transform.translate(
+                        offset: const Offset(0, -28),
+                        child: Material(
+                          color: Colors.white,
+                          shape: const CircleBorder(),
+                          elevation: 6,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(999),
+                            onTap: () {
+                              final popCtx = widget.parentContext ?? context;
+                              Navigator.of(popCtx).pop();
+                            },
+                            child: const SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF2C2C2C))),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
 									],
 								);
 			},
