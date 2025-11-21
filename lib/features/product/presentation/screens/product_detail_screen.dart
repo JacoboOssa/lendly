@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
+import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -485,12 +486,21 @@ class _ActionButton extends StatelessWidget {
           ),
           const SizedBox(width: 24),
           Expanded(
-            child: ElevatedButton(
-              onPressed: () {
+              child: ElevatedButton(
+              onPressed: () async {
+                final DateTimeRange? range = await showRentalDateRangePicker(context);
+                if (range == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Selección cancelada')),
+                  );
+                  return;
+                }
+
+                final start = '${range.start.day}/${range.start.month}/${range.start.year}';
+                final end = '${range.end.day}/${range.end.month}/${range.end.year}';
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Funcionalidad de alquiler próximamente'),
-                  ),
+                  SnackBar(content: Text('Fechas: $start - $end')),
                 );
               },
               style: ElevatedButton.styleFrom(
