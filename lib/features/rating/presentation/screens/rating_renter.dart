@@ -84,7 +84,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Califica al usuario que devolvió el producto y agrega un comentario.',
+                    'Califica al usuario que devolvió el producto',
                     style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D)),
                   ),
                   const SizedBox(height: 24),
@@ -130,13 +130,12 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Text('Comentario (opcional)', style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D))),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _commentController,
-                    maxLines: 4,
+                    maxLines: 10,
                     decoration: InputDecoration(
-                      hintText: 'Escribe un comentario sobre el usuario...',
+                      hintText: 'Comentario sobre el producto (opcional)',
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

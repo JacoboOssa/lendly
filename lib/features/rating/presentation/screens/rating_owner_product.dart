@@ -226,7 +226,6 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: _productCommentController,
-          minLines: 6,
           maxLines: 10,
           decoration: InputDecoration(
             hintText: 'Comentario sobre el producto (opcional)',
