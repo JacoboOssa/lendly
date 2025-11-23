@@ -159,6 +159,14 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
                     _buildMenuOption(
+                      icon: Icons.chat_bubble_outline,
+                      text: 'Chats',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/chats');
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMenuOption(
                       icon: Icons.message_outlined,
                       text: 'Mensajes',
                       onTap: () {},
