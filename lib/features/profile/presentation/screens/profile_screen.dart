@@ -136,6 +136,14 @@ class ProfileScreen extends StatelessWidget {
                     // Opciones del menú
                     _buildMenuOption(
                       icon: Icons.person_outline,
+                      text: 'Ver detalle del perfil',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/profile-detail');
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildMenuOption(
+                      icon: Icons.badge_outlined,
                       text: 'Información personal',
                       onTap: () {},
                     ),

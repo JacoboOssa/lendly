@@ -13,6 +13,7 @@ import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bl
 import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: '/login',
+      initialRoute: '/profile-detail', // Cambiar a '/login' en producción
       routes: {
         '/login': (_) =>
             BlocProvider(create: (_) => LoginBloc(), child: LoginScreen()),
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
           create: (_) => AllProductsBloc(),
           child: AllProductsScreen(),
         ),
+
+        '/profile-detail': (_) => const ProfileDetailScreen(),
       },
     );
   }
