@@ -157,6 +157,17 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
 
+                    if (user.role.toLowerCase() == 'renter') ...[
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.shopping_bag_outlined,
+                        text: 'Productos alquilados',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/rented-products');
+                        },
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
                     _buildMenuOption(
                       icon: Icons.inventory_2_outlined,
