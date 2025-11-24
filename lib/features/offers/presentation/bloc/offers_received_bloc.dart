@@ -48,7 +48,8 @@ class OfferActionSuccess extends OffersReceivedState {
   OfferActionSuccess(this.updated, this.message);
 }
 
-class OffersReceivedBloc extends Bloc<OffersReceivedEvent, OffersReceivedState> {
+class OffersReceivedBloc
+    extends Bloc<OffersReceivedEvent, OffersReceivedState> {
   final GetReceivedOffersUseCase getUseCase;
   final ApproveOfferUseCase approveUseCase;
   final RejectOfferUseCase rejectUseCase;
@@ -83,8 +84,8 @@ class OffersReceivedBloc extends Bloc<OffersReceivedEvent, OffersReceivedState> 
     final currentOffers = state is OffersLoaded
         ? (state as OffersLoaded).offers
         : state is OfferActionSuccess
-            ? (state as OfferActionSuccess).updated
-            : <Offer>[];
+        ? (state as OfferActionSuccess).updated
+        : <Offer>[];
     emit(OfferActionInProgress(currentOffers));
     try {
       await approveUseCase(event.offerId, event.pickupPoint);
@@ -102,8 +103,8 @@ class OffersReceivedBloc extends Bloc<OffersReceivedEvent, OffersReceivedState> 
     final currentOffers = state is OffersLoaded
         ? (state as OffersLoaded).offers
         : state is OfferActionSuccess
-            ? (state as OfferActionSuccess).updated
-            : <Offer>[];
+        ? (state as OfferActionSuccess).updated
+        : <Offer>[];
     emit(OfferActionInProgress(currentOffers));
     try {
       await rejectUseCase(event.offerId);

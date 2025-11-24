@@ -22,10 +22,7 @@ class Offer {
     this.pickupPoint,
   });
 
-  Offer copyWith({
-    OfferStatus? status,
-    String? pickupPoint,
-  }) {
+  Offer copyWith({OfferStatus? status, String? pickupPoint}) {
     return Offer(
       id: id,
       product: product,

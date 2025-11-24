@@ -13,17 +13,13 @@ class OffersReceivedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Un único data source / repositorio para mantener estado consistente.
+    final repository = OffersRepositoryImpl(OffersDataSource());
     return BlocProvider(
       create: (_) => OffersReceivedBloc(
-        getUseCase: GetReceivedOffersUseCase(
-          OffersRepositoryImpl(OffersDataSource()),
-        ),
-        approveUseCase: ApproveOfferUseCase(
-          OffersRepositoryImpl(OffersDataSource()),
-        ),
-        rejectUseCase: RejectOfferUseCase(
-          OffersRepositoryImpl(OffersDataSource()),
-        ),
+        getUseCase: GetReceivedOffersUseCase(repository),
+        approveUseCase: ApproveOfferUseCase(repository),
+        rejectUseCase: RejectOfferUseCase(repository),
       )..add(LoadOffersEvent()),
       child: const _OffersView(),
     );
@@ -56,13 +52,13 @@ class _OffersView extends StatelessWidget {
       body: BlocConsumer<OffersReceivedBloc, OffersReceivedState>(
         listener: (context, state) {
           if (state is OfferActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is OffersError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
@@ -119,7 +115,7 @@ class _OfferCard extends StatelessWidget {
             color: Colors.black.withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Padding(
@@ -140,8 +136,10 @@ class _OfferCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -154,16 +152,13 @@ class _OfferCard extends StatelessWidget {
                       color: statusColor,
                     ),
                   ),
-                )
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               'Solicitante: ${offer.renter.name}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF555555),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF555555)),
             ),
             const SizedBox(height: 4),
             Text(
@@ -174,8 +169,7 @@ class _OfferCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Punto de recogida: ${offer.pickupPoint}',
-                style:
-                    const TextStyle(fontSize: 12, color: Color(0xFF555555)),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
               ),
             ],
             const SizedBox(height: 12),
@@ -198,13 +192,16 @@ class _OfferCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Aprobar'),
+                    child: const Text(
+                      'Aprobar',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
-                    onPressed: () => context
-                        .read<OffersReceivedBloc>()
-                        .add(RejectOfferEvent(offer.id)),
+                    onPressed: () => context.read<OffersReceivedBloc>().add(
+                      RejectOfferEvent(offer.id),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
@@ -214,9 +211,9 @@ class _OfferCard extends StatelessWidget {
                     ),
                     child: const Text('Rechazar'),
                   ),
-                ]
+                ],
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -248,8 +245,8 @@ class _OfferCard extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(ctx);
                 context.read<OffersReceivedBloc>().add(
-                      ApproveOfferEvent(offerId, controller.text.trim()),
-                    );
+                  ApproveOfferEvent(offerId, controller.text.trim()),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF555879),
