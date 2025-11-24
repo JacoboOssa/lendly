@@ -79,13 +79,13 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (isSingle)
-                  _buildSingleProductSection(args as ManageAvailabilityArgs)
+                  _buildSingleProductSection(args)
                 else
                   _buildListSection(),
                 const SizedBox(height: 24),
                 _buildActions(
                     isSingle: isSingle,
-                    args: isSingle ? args as ManageAvailabilityArgs : null),
+                    args: isSingle ? args : null),
               ],
             ),
           ),
@@ -132,7 +132,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
             ),
             Switch(
               value: available,
-              activeColor: const Color(0xFF98A1BC),
+              activeThumbColor: const Color(0xFF98A1BC),
               onChanged: (v) =>
                   setState(() => _availability[args.productId] = v),
             ),
@@ -283,7 +283,7 @@ class _ProductTile extends StatelessWidget {
             ),
             Switch(
               value: value,
-              activeColor: const Color(0xFF98A1BC),
+              activeThumbColor: const Color(0xFF98A1BC),
               onChanged: onChanged,
             ),
           ],

@@ -343,7 +343,7 @@ class _ProductCard extends StatelessWidget {
                         child: Switch(
                           value: product.isAvailable,
                           onChanged: (_) => _toggleAvailability(context),
-                          activeColor: const Color(0xFF2E7D32),
+                          activeThumbColor: const Color(0xFF2E7D32),
                           activeTrackColor: const Color(0xFFC8E6C9),
                         ),
                       ),
@@ -573,7 +573,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _category,
+                            initialValue: _category,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
@@ -601,7 +601,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _condition,
+                            initialValue: _condition,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
