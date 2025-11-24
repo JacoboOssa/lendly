@@ -30,10 +30,6 @@ class ProfileScreen extends StatelessWidget {
           ],
           child: BlocBuilder<GetCurrentUserBloc, GetCurrentUserState>(
             builder: (context, userState) {
-              if (userState is GetCurrentUserLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
               if (userState is GetCurrentUserError) {
                 return Center(
                   child: Text(
@@ -149,6 +145,18 @@ class ProfileScreen extends StatelessWidget {
                       text: 'Configuración',
                       onTap: () {},
                     ),
+
+                    if (user.role.toLowerCase() == 'lender') ...[
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.inventory_2_outlined,
+                        text: 'Gestionar mis productos',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/manage-products');
+                        },
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
                     _buildMenuOption(
                       icon: Icons.inventory_2_outlined,

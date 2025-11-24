@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context, state) {
             if (state is LoginSuccess) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacementNamed(context, '/profile');
+                Navigator.pushReplacementNamed(context, '/main');
               });
             }
 
@@ -107,13 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-
-                            // Estado de carga
-                            if (state is LoginLoading)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8),
-                                child: CircularProgressIndicator(),
-                              ),
 
                             // Estado de error
                             if (state is LoginError)
