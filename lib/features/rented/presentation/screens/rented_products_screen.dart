@@ -26,6 +26,7 @@ class RentedProduct {
     if (!isLate) return 0;
     return DateTime.now().difference(dueDate).inDays;
   }
+
   int get totalLateCharge => lateDays * dailyExtraCents;
 }
 
@@ -38,11 +39,12 @@ class RentedProductsScreen extends StatelessWidget {
       RentedProduct(
         product: Product(
           id: 'rp1',
-            ownerId: 'lender1',
-            title: 'Palo de hockey',
-            pricePerDayCents: 3000,
-            city: 'Bogotá',
-            address: 'Calle 12 #3-45'),
+          ownerId: 'lender1',
+          title: 'Palo de hockey',
+          pricePerDayCents: 3000,
+          city: 'Bogotá',
+          address: 'Calle 12 #3-45',
+        ),
         ownerName: 'Sebastian Castillo',
         startDate: DateTime.now().subtract(const Duration(days: 1)),
         dueDate: DateTime.now().add(const Duration(days: 1)),
@@ -51,11 +53,12 @@ class RentedProductsScreen extends StatelessWidget {
       RentedProduct(
         product: Product(
           id: 'rp2',
-            ownerId: 'lender2',
-            title: 'Kit de sonido',
-            pricePerDayCents: 7500,
-            city: 'Medellín',
-            address: 'Av. Principal 55'),
+          ownerId: 'lender2',
+          title: 'Kit de sonido',
+          pricePerDayCents: 7500,
+          city: 'Medellín',
+          address: 'Av. Principal 55',
+        ),
         ownerName: 'Juan Brown',
         startDate: DateTime.now().subtract(const Duration(days: 3)),
         dueDate: DateTime.now().subtract(const Duration(days: 1)),
@@ -65,11 +68,12 @@ class RentedProductsScreen extends StatelessWidget {
       RentedProduct(
         product: Product(
           id: 'rp3',
-            ownerId: 'lender3',
-            title: 'Cámara DSLR',
-            pricePerDayCents: 10000,
-            city: 'Cali',
-            address: 'Calle 8 #20'),
+          ownerId: 'lender3',
+          title: 'Cámara DSLR',
+          pricePerDayCents: 10000,
+          city: 'Cali',
+          address: 'Calle 8 #20',
+        ),
         ownerName: 'Laura Pérez',
         startDate: DateTime.now().subtract(const Duration(days: 2)),
         dueDate: DateTime.now().add(const Duration(days: 2)),
@@ -105,7 +109,9 @@ class RentedProductsScreen extends StatelessWidget {
           final item = items[index];
           return RentedProductCard(
             item: item,
-            onChat: () { /* TODO chat */ },
+            onChat: () {
+              /* TODO chat */
+            },
             onReturn: () => Navigator.pushNamed(context, '/return-product'),
             onPay: item.status == RentalStatus.approved
                 ? () => Navigator.pushNamed(context, '/checkout')
@@ -128,9 +134,7 @@ class CheckoutScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: const Color(0xFF2C2C2C),
       ),
-      body: const Center(
-        child: Text('Pantalla de pago (placeholder)'),
-      ),
+      body: const Center(child: Text('Pantalla de pago (placeholder)')),
     );
   }
 }
@@ -146,9 +150,7 @@ class ReturnProductScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: const Color(0xFF2C2C2C),
       ),
-      body: const Center(
-        child: Text('Proceso de devolución (placeholder)'),
-      ),
+      body: const Center(child: Text('Proceso de devolución (placeholder)')),
     );
   }
 }

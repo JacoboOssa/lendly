@@ -37,7 +37,7 @@ class RentedProductCard extends StatelessWidget {
             color: Colors.black.withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Padding(
@@ -93,7 +93,7 @@ class RentedProductCard extends StatelessWidget {
                     child: const Text('Pagar'),
                   ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -164,9 +164,7 @@ class RentedProductCard extends StatelessWidget {
         LinearProgressIndicator(
           value: isLate ? 1 : progress.clamp(0, 1),
           backgroundColor: const Color(0xFFE0E0E0),
-          valueColor: AlwaysStoppedAnimation(
-            isLate ? Colors.red : statusColor,
-          ),
+          valueColor: AlwaysStoppedAnimation(isLate ? Colors.red : statusColor),
           minHeight: 6,
           borderRadius: BorderRadius.circular(4),
         ),
