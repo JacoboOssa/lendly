@@ -147,9 +147,34 @@ class _HomeHeader extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Probar Devolución'),
+                    content: const Text(
+                      '¿Quieres probar la pantalla de devolución?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushNamed(context, '/return');
+                        },
+                        child: const Text('Sí'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
             icon: const Icon(
-              Icons.shopping_bag_outlined,
+              Icons.keyboard_return,
               color: Colors.white,
               size: 18,
             ),
