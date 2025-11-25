@@ -147,7 +147,32 @@ class _HomeHeader extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Probar Checkout'),
+                    content: const Text(
+                      '¿Quieres probar la pantalla de checkout?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushNamed(context, '/checkout');
+                        },
+                        child: const Text('Sí'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
             icon: const Icon(
               Icons.shopping_bag_outlined,
               color: Colors.white,

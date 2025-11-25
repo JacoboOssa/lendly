@@ -15,6 +15,7 @@ import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.
 import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lendly_app/features/product/presentation/screens/manage_availability_screen.dart';
+import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +73,7 @@ class MyApp extends StatelessWidget {
           child: AllProductsScreen(),
         ),
         '/manage-availability': (_) => const ManageAvailabilityScreen(),
+        '/checkout': (_) => const CheckoutScreen(),
       },
     );
   }
