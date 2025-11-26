@@ -59,6 +59,7 @@ class ProductDataSourceImpl extends ProductDataSource {
         .from('items')
         .select()
         .eq('owner_id', userId)
+        .eq('active', true) // Solo productos activos (no eliminados)
         .order('created_at', ascending: false);
 
     return (response as List).map((data) => Product.fromJson(data)).toList();
@@ -78,6 +79,10 @@ class ProductDataSourceImpl extends ProductDataSource {
 
   @override
   Future<void> deleteProduct(String productId) async {
-    await Supabase.instance.client.from('items').delete().eq('id', productId);
+    // Soft delete: actualizar active = false en lugar de eliminar físicamente
+    await Supabase.instance.client
+        .from('items')
+        .update({'active': false})
+        .eq('id', productId);
   }
 }

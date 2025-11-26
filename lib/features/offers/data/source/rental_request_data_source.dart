@@ -57,7 +57,7 @@ class RentalRequestDataSourceImpl implements RentalRequestDataSource {
 
   @override
   Future<List<RentalRequest>> getRentalRequestsByOwner(String ownerId) async {
-    // Primero obtener los IDs de productos del owner
+    // Primero obtener los IDs de productos del owner (incluyendo eliminados para historiales)
     final productsResponse = await Supabase.instance.client
         .from('items')
         .select('id')

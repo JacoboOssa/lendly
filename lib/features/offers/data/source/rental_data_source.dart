@@ -90,7 +90,7 @@ class RentalDataSourceImpl implements RentalDataSource {
 
   @override
   Future<List<Rental>> getRentalsByLender(String lenderId, {String? status}) async {
-    // Primero obtener los productos del lender
+    // Primero obtener los productos del lender (incluyendo eliminados para historiales)
     final productsResponse = await Supabase.instance.client
         .from('items')
         .select('id')

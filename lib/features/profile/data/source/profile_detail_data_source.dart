@@ -47,7 +47,7 @@ class ProfileDetailDataSourceImpl implements ProfileDetailDataSource {
   @override
   Future<int> getCompletedRentalsCountForLender(String userId) async {
     // Para lender: contar rentals completados donde el producto pertenece al usuario
-    // Primero obtener los IDs de productos del owner
+    // Primero obtener los IDs de productos del owner (incluyendo eliminados para historiales)
     final productsResponse = await Supabase.instance.client
         .from('items')
         .select('id')
