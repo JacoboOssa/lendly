@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
-import 'package:lendly_app/features/product/domain/usecases/create_rental_request_usecase.dart';
+import 'package:lendly_app/features/offers/domain/usecases/create_rental_request_usecase.dart';
 
 // EVENTS
 abstract class RentalRequestEvent {}
