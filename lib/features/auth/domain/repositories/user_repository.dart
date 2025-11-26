@@ -5,4 +5,5 @@ import 'package:lendly_app/domain/model/app_user.dart';
 abstract class UserRepository {
   Future<void> registerUser(String email, String password, AppUser user);
   Future<void> signIn(String email, String password);
+  Future<String?> getCurrentUserId();
 }

@@ -21,4 +21,9 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> signIn(String email, String password) {
     return authDataSource.signIn(email, password);
   }
+
+  @override
+  Future<String?> getCurrentUserId() {
+    return authDataSource.getCurrentUserId();
+  }
 }
