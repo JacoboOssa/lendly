@@ -1,6 +1,7 @@
 //EVENTOS
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/profile/domain/usecases/logout_usecase.dart';
+import 'package:lendly_app/core/services/user_session_service.dart';
 
 abstract class LogoutEvent {}
 
@@ -33,6 +34,8 @@ class LogoutBloc extends Bloc<LogoutEvent, LogoutState> {
     emit(LogoutLoading());
     try {
       await logoutUsecase.execute();
+      // Limpiar el singleton al hacer logout
+      UserSessionService().clear();
       emit(LogoutSuccess());
     } catch (e) {
       emit(LogoutError(e.toString()));

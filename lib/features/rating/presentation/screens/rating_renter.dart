@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/features/rating/presentation/bloc/rating_renter_bloc.dart';
 
 class RatingRenterScreen extends StatefulWidget {
+  final String rentalId;
+  final String borrowerUserId;
   final String renterName;
 
-  const RatingRenterScreen({Key? key, required this.renterName}) : super(key: key);
+  const RatingRenterScreen({
+    Key? key,
+    required this.rentalId,
+    required this.borrowerUserId,
+    required this.renterName,
+  }) : super(key: key);
 
   @override
   State<RatingRenterScreen> createState() => _RatingRenterScreenState();
@@ -27,21 +36,35 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
       return;
     }
 
-    final result = {
-      'rating': _rating,
-      'comment': _commentController.text.trim(),
-    };
-
-    Navigator.of(context).pop(result);
+    context.read<RatingRenterBloc>().add(
+          SubmitBorrowerRatingEvent(
+            rentalId: widget.rentalId,
+            borrowerUserId: widget.borrowerUserId,
+            rating: _rating,
+            comment: _commentController.text.trim().isEmpty
+                ? null
+                : _commentController.text.trim(),
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
+    return BlocListener<RatingRenterBloc, RatingRenterState>(
+      listener: (context, state) {
+        if (state is RatingRenterSuccess) {
+          Navigator.of(context).pop(true);
+        } else if (state is RatingRenterError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
@@ -73,102 +96,121 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Calificar a ${widget.renterName}',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF1F1F1F)),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Califica al usuario que devolvió el producto',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D)),
-                  ),
-                  const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Calificar a ${widget.renterName}',
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF1F1F1F)),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Califica al usuario que devolvió el producto',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D)),
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Avatar + name preview
-                  Row(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF5B5670),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            widget.renterName.isNotEmpty ? widget.renterName[0].toUpperCase() : 'U',
-                            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                    // Avatar + name preview
+                    Row(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF5B5670),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              widget.renterName.isNotEmpty ? widget.renterName[0].toUpperCase() : 'U',
+                              style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(widget.renterName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  const Text('Calificación', style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D))),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: List.generate(5, (index) {
-                      final starIndex = index + 1;
-                      return IconButton(
-                        onPressed: () => setState(() => _rating = starIndex),
-                        icon: Icon(
-                          _rating >= starIndex ? Icons.star : Icons.star_border,
-                          color: const Color(0xFFFFC107),
-                          size: 32,
-                        ),
-                      );
-                    }),
-                  ),
-
-                  const SizedBox(height: 16),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _commentController,
-                    maxLines: 10,
-                    decoration: InputDecoration(
-                      hintText: 'Comentario sobre el producto (opcional)',
-                      filled: true,
-                      fillColor: const Color(0xFFF9FAFB),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        const SizedBox(width: 12),
+                        Text(widget.renterName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                      ],
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 24),
+
+                    const Text('Calificación', style: TextStyle(fontSize: 14, color: Color(0xFF6D6D6D))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: List.generate(5, (index) {
+                        final starIndex = index + 1;
+                        return IconButton(
+                          onPressed: () => setState(() => _rating = starIndex),
+                          icon: Icon(
+                            _rating >= starIndex ? Icons.star : Icons.star_border,
+                            color: const Color(0xFFFFC107),
+                            size: 32,
+                          ),
+                        );
+                      }),
+                    ),
+
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _commentController,
+                      maxLines: 6,
+                      decoration: InputDecoration(
+                        hintText: 'Comentario sobre el producto (opcional)',
+                        filled: true,
+                        fillColor: const Color(0xFFF9FAFB),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
             SafeArea(
               top: false,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5670),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text('Enviar calificación', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  child: BlocBuilder<RatingRenterBloc, RatingRenterState>(
+                    builder: (context, state) {
+                      final isLoading = state is RatingRenterLoading;
+                      return ElevatedButton(
+                        onPressed: isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5B5670),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Enviar calificación',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }

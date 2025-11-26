@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
+import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/features/return/domain/usecases/create_return_usecase.dart';
 import 'package:intl/intl.dart';
 
@@ -9,11 +11,15 @@ import 'package:intl/intl.dart';
 class ReturnScreen extends StatefulWidget {
   final Rental rental;
   final RentalRequest rentalRequest;
+  final Product product;
+  final AppUser owner;
 
   const ReturnScreen({
     super.key,
     required this.rental,
     required this.rentalRequest,
+    required this.product,
+    required this.owner,
   });
 
   @override
@@ -26,8 +32,6 @@ class _ReturnScreenState extends State<ReturnScreen> {
 
   TimeOfDay? _returnTime;
   final CreateReturnUseCase _createReturnUseCase = CreateReturnUseCase();
-
-  bool _isSubmitted = false;
   bool _isLoading = false;
 
   @override
@@ -57,10 +61,20 @@ class _ReturnScreenState extends State<ReturnScreen> {
       );
 
       if (mounted) {
-        setState(() {
-          _isSubmitted = true;
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
+        // Cerrar esta pantalla y navegar directamente a la calificación
+        Navigator.of(context).pop(true); // Retornar true para indicar éxito
+        // Navegar directamente a la pantalla de calificación
+        Navigator.of(context).pushNamed(
+          '/rating/owner_product',
+          arguments: {
+            'rentalId': widget.rental.id!,
+            'ownerUserId': widget.owner.id,
+            'ownerName': widget.owner.name,
+            'productId': widget.product.id,
+            'productTitle': widget.product.title,
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -74,10 +88,6 @@ class _ReturnScreenState extends State<ReturnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isSubmitted) {
-      return _ReturnConfirmationScreen();
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -396,71 +406,3 @@ class _ReturnButton extends StatelessWidget {
   }
 }
 
-class _ReturnConfirmationScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF1F1F1F),
-            size: 18,
-          ),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: const Text(
-          'Devolucion del producto',
-          style: TextStyle(
-            color: Color(0xFF1F1F1F),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Petición devolución enviada al arrendador.',
-                style: TextStyle(color: Color(0xFF1F1F1F), fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true); // Retornar true para indicar éxito
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B5670),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Ver productos alquilados',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

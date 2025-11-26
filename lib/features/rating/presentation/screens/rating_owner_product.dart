@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/features/rating/presentation/bloc/rating_owner_product_bloc.dart';
 
 class RatingOwnerProductScreen extends StatefulWidget {
+  final String rentalId;
+  final String ownerUserId;
   final String ownerName;
+  final String productId;
   final String productTitle;
 
-  const RatingOwnerProductScreen({Key? key, required this.ownerName, required this.productTitle}) : super(key: key);
+  const RatingOwnerProductScreen({
+    Key? key,
+    required this.rentalId,
+    required this.ownerUserId,
+    required this.ownerName,
+    required this.productId,
+    required this.productTitle,
+  }) : super(key: key);
 
   @override
   State<RatingOwnerProductScreen> createState() => _RatingOwnerProductScreenState();
@@ -26,6 +38,12 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
 
   void _submit() {
     // Final submit from product step
+    if (_ownerRating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor califica al propietario')),
+      );
+      return;
+    }
     if (_productRating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor califica el producto')),
@@ -33,14 +51,21 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
       return;
     }
 
-    final result = {
-      'ownerRating': _ownerRating,
-      'ownerComment': _ownerCommentController.text.trim(),
-      'productRating': _productRating,
-      'productComment': _productCommentController.text.trim(),
-    };
-
-    Navigator.of(context).pop(result);
+    context.read<RatingOwnerProductBloc>().add(
+          SubmitOwnerAndProductRatingsEvent(
+            rentalId: widget.rentalId,
+            ownerUserId: widget.ownerUserId,
+            productId: widget.productId,
+            ownerRating: _ownerRating,
+            ownerComment: _ownerCommentController.text.trim().isEmpty
+                ? null
+                : _ownerCommentController.text.trim(),
+            productRating: _productRating,
+            productComment: _productCommentController.text.trim().isEmpty
+                ? null
+                : _productCommentController.text.trim(),
+          ),
+        );
   }
 
   Widget _buildStarRow(int value, ValueChanged<int> onChanged) {
@@ -61,11 +86,21 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
+    return BlocListener<RatingOwnerProductBloc, RatingOwnerProductState>(
+      listener: (context, state) {
+        if (state is RatingOwnerProductSuccess) {
+          Navigator.of(context).pop(true);
+        } else if (state is RatingOwnerProductError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
@@ -139,23 +174,41 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _step == 0 ? _nextStep : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5670),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
+                    child: BlocBuilder<RatingOwnerProductBloc, RatingOwnerProductState>(
+                      builder: (context, state) {
+                        final isLoading = state is RatingOwnerProductLoading;
+                        return ElevatedButton(
+                          onPressed: isLoading ? null : (_step == 0 ? _nextStep : _submit),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF5B5670),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Text(
+                                  _step == 0 ? 'Siguiente' : 'Enviar calificaciones',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                ),
+                        );
+                      },
                     ),
-                    child: Text(_step == 0 ? 'Siguiente' : 'Enviar calificaciones', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

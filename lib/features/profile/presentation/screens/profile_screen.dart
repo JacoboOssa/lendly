@@ -189,6 +189,14 @@ class ProfileScreen extends StatelessWidget {
                           Navigator.pushNamed(context, '/rented-products');
                         },
                       ),
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.history,
+                        text: 'Historial de alquileres',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/rental-history');
+                        },
+                      ),
                     ],
                     if (user.role.toLowerCase() == 'lender') ...[
                       const SizedBox(height: 16),
@@ -197,6 +205,14 @@ class ProfileScreen extends StatelessWidget {
                         text: 'Productos en alquiler',
                         onTap: () {
                           Navigator.pushNamed(context, '/rented-products');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.history,
+                        text: 'Historial de préstamos',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/rental-history');
                         },
                       ),
                     ],

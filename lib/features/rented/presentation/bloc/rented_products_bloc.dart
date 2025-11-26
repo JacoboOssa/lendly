@@ -9,11 +9,24 @@ abstract class RentedProductsEvent {}
 class LoadRentedProductsEvent extends RentedProductsEvent {}
 
 // States
-abstract class RentedProductsState {}
+abstract class RentedProductsState {
+  final bool? isBorrower;
+  RentedProductsState({this.isBorrower});
+}
 
-class RentedProductsInitial extends RentedProductsState {}
+class RentedProductsInitial extends RentedProductsState {
+  RentedProductsInitial() : super(isBorrower: null);
+}
 
-class RentedProductsLoading extends RentedProductsState {}
+class RentedProductsRoleDetermined extends RentedProductsState {
+  final bool isBorrower;
+  RentedProductsRoleDetermined({required this.isBorrower}) : super(isBorrower: isBorrower);
+}
+
+class RentedProductsLoading extends RentedProductsState {
+  final bool isBorrower;
+  RentedProductsLoading({required this.isBorrower}) : super(isBorrower: isBorrower);
+}
 
 class RentedProductsLoaded extends RentedProductsState {
   final List<RentedProductData> products;
@@ -22,13 +35,13 @@ class RentedProductsLoaded extends RentedProductsState {
   RentedProductsLoaded({
     required this.products,
     required this.isBorrower,
-  });
+  }) : super(isBorrower: isBorrower);
 }
 
 class RentedProductsError extends RentedProductsState {
   final String message;
 
-  RentedProductsError(this.message);
+  RentedProductsError(this.message) : super(isBorrower: null);
 }
 
 // Bloc
@@ -52,8 +65,6 @@ class RentedProductsBloc extends Bloc<RentedProductsEvent, RentedProductsState> 
     LoadRentedProductsEvent event,
     Emitter<RentedProductsState> emit,
   ) async {
-    emit(RentedProductsLoading());
-
     try {
       final currentUser = await getCurrentUserUsecase.execute();
       if (currentUser == null) {
@@ -63,6 +74,11 @@ class RentedProductsBloc extends Bloc<RentedProductsEvent, RentedProductsState> 
 
       final isBorrower = currentUser.role.toLowerCase() == 'borrower';
       final userId = currentUser.id;
+
+      // Emitir el rol inmediatamente para que el título se muestre correcto desde el inicio
+      emit(RentedProductsRoleDetermined(isBorrower: isBorrower));
+      
+      emit(RentedProductsLoading(isBorrower: isBorrower));
 
       final products = isBorrower
           ? await getRentedProductsUseCase.executeForBorrower(userId)

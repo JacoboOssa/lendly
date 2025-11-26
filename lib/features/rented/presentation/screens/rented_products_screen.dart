@@ -6,6 +6,8 @@ import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_u
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
+import 'package:lendly_app/domain/model/rental.dart';
+import 'package:lendly_app/core/services/user_session_service.dart';
 
 class RentedProductsScreen extends StatelessWidget {
   const RentedProductsScreen({super.key});
@@ -33,25 +35,14 @@ class _RentedProductsView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2C2C2C)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: BlocBuilder<RentedProductsBloc, RentedProductsState>(
-          builder: (context, state) {
-            if (state is RentedProductsLoaded) {
-              return Text(
-                state.isBorrower ? 'Productos alquilados' : 'Productos en alquiler',
-                style: const TextStyle(
-                  color: Color(0xFF2C2C2C),
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            }
-            return const Text(
-              'Productos alquilados',
-              style: TextStyle(
-                color: Color(0xFF2C2C2C),
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
+        title: Text(
+          UserSessionService().isBorrower
+              ? 'Productos alquilados'
+              : 'Productos en alquiler',
+          style: const TextStyle(
+            color: Color(0xFF2C2C2C),
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: BlocBuilder<RentedProductsBloc, RentedProductsState>(
@@ -138,6 +129,8 @@ class _RentedProductsView extends StatelessWidget {
                             builder: (_) => ReturnScreen(
                               rental: productData.rental,
                               rentalRequest: productData.rentalRequest,
+                              product: productData.product,
+                              owner: productData.otherUser,
                             ),
                           ),
                         );

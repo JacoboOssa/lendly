@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:lendly_app/core/services/user_session_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,15 +20,20 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: BlocBuilder<LoginBloc, LoginState>(
-          builder: (context, state) {
+        child: BlocListener<LoginBloc, LoginState>(
+          listener: (context, state) {
             if (state is LoginSuccess) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.pushReplacementNamed(context, '/main');
+              // Inicializar el singleton con el usuario actual
+              UserSessionService().initialize().then((_) {
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/main');
+                }
               });
             }
-
-            return SingleChildScrollView(
+          },
+          child: BlocBuilder<LoginBloc, LoginState>(
+            builder: (context, state) {
+              return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,
@@ -212,7 +218,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             );
-          },
+            },
+          ),
         ),
       ),
     );
