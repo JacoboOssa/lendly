@@ -454,7 +454,6 @@ class _ActionButton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -466,11 +465,6 @@ class _ActionButton extends StatelessWidget {
       child: Center(
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-          ),
           child: Material(
             color: const Color(0xFF5B5670),
             borderRadius: BorderRadius.circular(28),
