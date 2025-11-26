@@ -134,25 +134,25 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 32),
 
                     // Opciones del menú
-                    _buildMenuOption(
-                      icon: Icons.person_outline,
-                      text: 'Ver detalle del perfil',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/profile-detail');
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.badge_outlined,
-                      text: 'Información personal',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.settings_outlined,
-                      text: 'Configuración',
-                      onTap: () {},
-                    ),
+                    // _buildMenuOption(
+                    //   icon: Icons.person_outline,
+                    //   text: 'Ver detalle del perfil',
+                    //   onTap: () {
+                    //     Navigator.pushNamed(context, '/profile-detail');
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildMenuOption(
+                    //   icon: Icons.badge_outlined,
+                    //   text: 'Información personal',
+                    //   onTap: () {},
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildMenuOption(
+                    //   icon: Icons.settings_outlined,
+                    //   text: 'Configuración',
+                    //   onTap: () {},
+                    // ),
 
                     if (user.role.toLowerCase() == 'lender') ...[
                       const SizedBox(height: 16),
@@ -199,24 +199,24 @@ class ProfileScreen extends StatelessWidget {
                         Navigator.pushNamed(context, '/chats');
                       },
                     ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.message_outlined,
-                      text: 'Mensajes',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.star_outline,
-                      text: 'Califícanos',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMenuOption(
-                      icon: Icons.info_outline,
-                      text: 'Acerca de',
-                      onTap: () {},
-                    ),
+                    // const SizedBox(height: 16),
+                    // _buildMenuOption(
+                    //   icon: Icons.message_outlined,
+                    //   text: 'Mensajes',
+                    //   onTap: () {},
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildMenuOption(
+                    //   icon: Icons.star_outline,
+                    //   text: 'Califícanos',
+                    //   onTap: () {},
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildMenuOption(
+                    //   icon: Icons.info_outline,
+                    //   text: 'Acerca de',
+                    //   onTap: () {},
+                    // ),
                     const SizedBox(height: 40),
 
                     // Botón de logout
