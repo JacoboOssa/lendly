@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
@@ -9,10 +10,33 @@ import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+=======
+
+// Modelo simple para mock
+class OfferMock {
+  final String id;
+  final String productTitle;
+  final String renterName;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String status; // PENDING, APPROVED, REJECTED
+  final String? pickupPoint;
+  OfferMock({
+    required this.id,
+    required this.productTitle,
+    required this.renterName,
+    required this.startDate,
+    required this.endDate,
+    this.status = 'PENDING',
+    this.pickupPoint,
+  });
+}
+>>>>>>> feature/Rented-products-
 
 class OffersReceivedScreen extends StatelessWidget {
   const OffersReceivedScreen({super.key});
 
+<<<<<<< HEAD
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -91,6 +115,37 @@ class _OffersViewState extends State<_OffersView> {
 
   @override
   Widget build(BuildContext context) {
+=======
+  List<OfferMock> _mock() => [
+    OfferMock(
+      id: '1',
+      productTitle: 'Palo de hockey',
+      renterName: 'Sebastian Castillo',
+      startDate: DateTime.now().add(const Duration(days: 2)),
+      endDate: DateTime.now().add(const Duration(days: 5)),
+    ),
+    OfferMock(
+      id: '2',
+      productTitle: 'Kit de sonido',
+      renterName: 'Juan Brown',
+      startDate: DateTime.now().add(const Duration(days: 7)),
+      endDate: DateTime.now().add(const Duration(days: 10)),
+    ),
+    OfferMock(
+      id: '3',
+      productTitle: 'Cámara DSLR',
+      renterName: 'Laura Pérez',
+      startDate: DateTime.now().add(const Duration(days: 1)),
+      endDate: DateTime.now().add(const Duration(days: 4)),
+      status: 'APPROVED',
+      pickupPoint: 'Entrada centro comercial',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _mock();
+>>>>>>> feature/Rented-products-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -107,6 +162,7 @@ class _OffersViewState extends State<_OffersView> {
             fontWeight: FontWeight.bold,
           ),
         ),
+<<<<<<< HEAD
         centerTitle: false,
       ),
       body: BlocConsumer<OffersReceivedBloc, OffersReceivedState>(
@@ -204,10 +260,20 @@ class _OffersViewState extends State<_OffersView> {
               return _OfferCard(offer: offer);
             },
           );
+=======
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          final offer = data[index];
+          return _OfferCard(offer: offer);
+>>>>>>> feature/Rented-products-
         },
       ),
     );
   }
+<<<<<<< HEAD
 
   List<RentalRequestView> _extractOffers(OffersReceivedState state) {
     if (state is OffersLoaded) return state.offers;
@@ -219,13 +285,28 @@ class _OffersViewState extends State<_OffersView> {
 
 class _OfferCard extends StatelessWidget {
   final RentalRequestView offer;
+=======
+}
+
+class _OfferCard extends StatelessWidget {
+  final OfferMock offer;
+>>>>>>> feature/Rented-products-
   const _OfferCard({required this.offer});
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final statusColor = _getStatusColor(offer.request.status);
     final statusText = _getStatusText(offer.request.status);
 
+=======
+    final statusColor = switch (offer.status) {
+      'PENDING' => const Color(0xFF555879),
+      'APPROVED' => Colors.green,
+      'REJECTED' => Colors.red,
+      _ => const Color(0xFF555879),
+    };
+>>>>>>> feature/Rented-products-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -233,7 +314,11 @@ class _OfferCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
+<<<<<<< HEAD
             color: Colors.black.withValues(alpha: 0.05),
+=======
+            color: Colors.black.withOpacity(0.05),
+>>>>>>> feature/Rented-products-
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -248,7 +333,11 @@ class _OfferCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
+<<<<<<< HEAD
                     offer.product.title,
+=======
+                    offer.productTitle,
+>>>>>>> feature/Rented-products-
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -262,11 +351,19 @@ class _OfferCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
+<<<<<<< HEAD
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     statusText,
+=======
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    offer.status,
+>>>>>>> feature/Rented-products-
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -277,6 +374,7 @@ class _OfferCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+<<<<<<< HEAD
             Row(
               children: [
                 const Text(
@@ -361,12 +459,29 @@ class _OfferCard extends StatelessWidget {
                     ),
                   ],
                 ),
+=======
+            Text(
+              'Solicitante: ${offer.renterName}',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF555555)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Periodo: ${_fmt(offer.startDate)} - ${_fmt(offer.endDate)}',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF777777)),
+            ),
+            if (offer.pickupPoint != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Punto de recogida: ${offer.pickupPoint}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
+>>>>>>> feature/Rented-products-
               ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
                 IconButton(
+<<<<<<< HEAD
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -384,6 +499,18 @@ class _OfferCard extends StatelessWidget {
                     onPressed: () => _showApproveDialog(context, offer),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF5B5670),
+=======
+                  onPressed: () {}, // TODO chat
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  color: const Color(0xFF555879),
+                ),
+                const SizedBox(width: 8),
+                if (offer.status == 'PENDING') ...[
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF555879),
+>>>>>>> feature/Rented-products-
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -395,9 +522,13 @@ class _OfferCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
+<<<<<<< HEAD
                     onPressed: () => context.read<OffersReceivedBloc>().add(
                       RejectOfferEvent(offer.request.id!),
                     ),
+=======
+                    onPressed: () {},
+>>>>>>> feature/Rented-products-
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
@@ -407,6 +538,21 @@ class _OfferCard extends StatelessWidget {
                     ),
                     child: const Text('Rechazar'),
                   ),
+<<<<<<< HEAD
+=======
+                ] else if (offer.status == 'APPROVED') ...[
+                  OutlinedButton(
+                    onPressed: () {}, // TODO pago
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF555879),
+                      side: const BorderSide(color: Color(0xFF555879)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Pagar'),
+                  ),
+>>>>>>> feature/Rented-products-
                 ],
               ],
             ),
@@ -416,6 +562,7 @@ class _OfferCard extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   Color _getStatusColor(RentalRequestStatus status) {
     switch (status) {
       case RentalRequestStatus.pending:
@@ -603,4 +750,8 @@ class _OfferCard extends StatelessWidget {
   String _formatDateTime(DateTime dateTime) {
     return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
   }
+=======
+  String _fmt(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+>>>>>>> feature/Rented-products-
 }
