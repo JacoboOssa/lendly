@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/offers/presentation/bloc/offers_received_bloc.dart';
 import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_usecase.dart';
 import 'package:lendly_app/features/offers/domain/usecases/approve_rental_request_usecase.dart';

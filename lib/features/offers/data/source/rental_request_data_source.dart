@@ -72,10 +72,16 @@ class RentalRequestDataSourceImpl implements RentalRequestDataSource {
         .toList();
 
     // Luego obtener las solicitudes de esos productos
+    // Si no hay productos, retornar lista vacía
+    if (productIds.isEmpty) {
+      return [];
+    }
+
+    // Usar inFilter para filtrar por múltiples valores
     final response = await Supabase.instance.client
         .from('rental_request')
         .select()
-        .in_('product_id', productIds)
+        .inFilter('product_id', productIds)
         .order('created_at', ascending: false);
 
     return (response as List)
