@@ -79,11 +79,11 @@ class MyApp extends StatelessWidget {
         '/manage-availability': (_) => const ManageAvailabilityScreen(),
         '/offers-received': (_) => const OffersReceivedScreen(),
         '/offers-sent': (_) => const OffersSentScreen(),
+        '/rented-products': (_) => const RentedProductsScreen(),
+        '/return-product': (_) => const ReturnProductScreen(),
+        '/checkout': (_) => const CheckoutScreen(),
 
         '/chats': (_) => const ChatsScreen(),
-        '/rented-products': (_) => const RentedProductsScreen(),
-        '/checkout': (_) => const CheckoutScreen(),
-        '/return-product': (_) => const ReturnProductScreen(),
       },
     );
   }

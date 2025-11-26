@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:lendly_app/features/rented/presentation/screens/rented_products_screen.dart';
+import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
+import 'package:lendly_app/domain/model/rental.dart';
 
 class RentedProductCard extends StatelessWidget {
-  final RentedProduct item;
+  final RentedProductData productData;
+  final bool isBorrower;
   final VoidCallback onChat;
   final VoidCallback onReturn;
   final VoidCallback? onPay;
+
   const RentedProductCard({
     super.key,
-    required this.item,
+    required this.productData,
+    required this.isBorrower,
     required this.onChat,
     required this.onReturn,
     this.onPay,
@@ -19,11 +23,11 @@ class RentedProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = switch (item.status) {
-      RentalStatus.pending => _primary,
-      RentalStatus.approved => Colors.green,
-      RentalStatus.overdue => Colors.red,
-    };
+    final statusColor = productData.isLate
+        ? Colors.red
+        : (productData.rental.status == RentalStatus.active
+            ? Colors.green
+            : _primary);
 
     final progress = _computeProgress();
 
@@ -48,16 +52,16 @@ class RentedProductCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _thumbPlaceholder(),
+                _productImage(),
                 const SizedBox(width: 12),
                 Expanded(child: _info(statusColor)),
                 _statusBadge(statusColor),
               ],
             ),
             const SizedBox(height: 12),
-            _progressBar(progress, statusColor),
+            _remainingDaysInfo(statusColor),
             const SizedBox(height: 8),
-            if (item.isLate) _lateInfo(),
+            if (productData.isLate) _lateInfo(),
             Row(
               children: [
                 IconButton(
@@ -65,39 +69,59 @@ class RentedProductCard extends StatelessWidget {
                   icon: const Icon(Icons.chat_bubble_outline),
                   color: _primary,
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: onReturn,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Devolución',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                if (item.status == RentalStatus.approved && onPay != null)
-                  OutlinedButton(
-                    onPressed: onPay,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _primary,
-                      side: BorderSide(color: _primary),
+                if (isBorrower) ...[
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: onReturn,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Pagar'),
+                    child: const Text(
+                      'Devolución',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
+                  const SizedBox(width: 12),
+                  if (productData.rental.status == RentalStatus.active &&
+                      !productData.isLate &&
+                      onPay != null)
+                    OutlinedButton(
+                      onPressed: onPay,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _primary,
+                        side: BorderSide(color: _primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Pagar'),
+                    ),
+                ],
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _productImage() {
+    if (productData.product.photoUrl != null && productData.product.photoUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          productData.product.photoUrl!,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _thumbPlaceholder(),
+        ),
+      );
+    }
+    return _thumbPlaceholder();
   }
 
   Widget _thumbPlaceholder() {
@@ -117,7 +141,7 @@ class RentedProductCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          item.product.title,
+          productData.product.title,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -126,12 +150,14 @@ class RentedProductCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Dueño: ${item.ownerName}',
+          isBorrower
+              ? 'Dueño: ${productData.otherUser.name}'
+              : 'Alquilador: ${productData.otherUser.name}',
           style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
         ),
         const SizedBox(height: 4),
         Text(
-          'Límite: ${_formatDate(item.dueDate)}',
+          'Límite: ${_formatDate(productData.dueDate)}',
           style: const TextStyle(fontSize: 12, color: Color(0xFF777777)),
         ),
       ],
@@ -139,6 +165,15 @@ class RentedProductCard extends StatelessWidget {
   }
 
   Widget _statusBadge(Color statusColor) {
+    String statusText;
+    if (productData.isLate) {
+      statusText = 'RETRASADO';
+    } else if (productData.rental.status == RentalStatus.active) {
+      statusText = 'APROBADO';
+    } else {
+      statusText = 'PENDIENTE';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -146,7 +181,7 @@ class RentedProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        item.status.name.toUpperCase(),
+        statusText,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -157,7 +192,7 @@ class RentedProductCard extends StatelessWidget {
   }
 
   Widget _progressBar(double progress, Color statusColor) {
-    final isLate = item.isLate;
+    final isLate = productData.isLate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,7 +206,7 @@ class RentedProductCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           isLate
-              ? 'Retrasado desde ${_formatDate(item.dueDate)}'
+              ? 'Retrasado desde ${_formatDate(productData.dueDate)}'
               : 'Progreso: ${(progress * 100).clamp(0, 100).toStringAsFixed(0)}% (${_remainingDays()} día(s) restantes)',
           style: TextStyle(
             fontSize: 11,
@@ -183,11 +218,29 @@ class RentedProductCard extends StatelessWidget {
     );
   }
 
+  Widget _remainingDaysInfo(Color statusColor) {
+    final isLate = productData.isLate;
+    final remainingDays = _remainingDays();
+    
+    return Text(
+      isLate
+          ? 'Retrasado desde ${_formatDate(productData.dueDate)}'
+          : remainingDays > 0
+              ? '${remainingDays} día(s) restantes'
+              : 'Vence hoy',
+      style: TextStyle(
+        fontSize: 13,
+        color: isLate ? Colors.red : const Color(0xFF555555),
+        fontWeight: isLate ? FontWeight.w600 : FontWeight.w500,
+      ),
+    );
+  }
+
   Widget _lateInfo() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
-        'Retrasado: ${item.lateDays} día(s) - Cargo extra: ${(item.totalLateCharge / 100).toStringAsFixed(0)}',
+        'Retrasado: ${productData.lateDays} día(s) - Cargo extra: \$${(productData.totalLateCharge / 100).toStringAsFixed(0)}',
         style: const TextStyle(
           fontSize: 12,
           color: Colors.red,
@@ -198,14 +251,14 @@ class RentedProductCard extends StatelessWidget {
   }
 
   double _computeProgress() {
-    final total = item.dueDate.difference(item.startDate).inSeconds;
-    final elapsed = DateTime.now().difference(item.startDate).inSeconds;
+    final total = productData.dueDate.difference(productData.startDate).inSeconds;
+    final elapsed = DateTime.now().difference(productData.startDate).inSeconds;
     if (total <= 0) return 0;
     return elapsed / total;
   }
 
   int _remainingDays() {
-    final diff = item.dueDate.difference(DateTime.now()).inDays;
+    final diff = productData.dueDate.difference(DateTime.now()).inDays;
     return diff < 0 ? 0 : diff;
   }
 

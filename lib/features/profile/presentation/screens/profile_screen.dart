@@ -181,6 +181,24 @@ class ProfileScreen extends StatelessWidget {
                           Navigator.pushNamed(context, '/offers-sent');
                         },
                       ),
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.shopping_bag_outlined,
+                        text: 'Productos alquilados',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/rented-products');
+                        },
+                      ),
+                    ],
+                    if (user.role.toLowerCase() == 'lender') ...[
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.shopping_bag_outlined,
+                        text: 'Productos en alquiler',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/rented-products');
+                        },
+                      ),
                     ],
 
                     // const SizedBox(height: 16),
