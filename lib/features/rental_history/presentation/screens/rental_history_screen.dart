@@ -7,6 +7,7 @@ import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
 import 'package:lendly_app/core/services/user_session_service.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:intl/intl.dart';
 
 class RentalHistoryScreen extends StatelessWidget {
@@ -172,7 +173,7 @@ class _RentalHistoryCard extends StatelessWidget {
               children: [
                 _productImage(),
                 const SizedBox(width: 12),
-                Expanded(child: _info(statusColor)),
+                Expanded(child: _info(context, statusColor)),
               ],
             ),
             const SizedBox(height: 12),
@@ -272,7 +273,7 @@ class _RentalHistoryCard extends StatelessWidget {
     );
   }
 
-  Widget _info(Color statusColor) {
+  Widget _info(BuildContext context, Color statusColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -285,11 +286,32 @@ class _RentalHistoryCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          isBorrower
-              ? 'Dueño: ${rentalData.otherUser.name}'
-              : 'Alquilador: ${rentalData.otherUser.name}',
-          style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+        Row(
+          children: [
+            Text(
+              isBorrower ? 'Dueño: ' : 'Alquilador: ',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileDetailScreen(userId: rentalData.otherUser.id),
+                  ),
+                );
+              },
+              child: Text(
+                rentalData.otherUser.name,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF5B5670),
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

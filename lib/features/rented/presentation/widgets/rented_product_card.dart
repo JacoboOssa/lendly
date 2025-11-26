@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
 import 'package:lendly_app/domain/model/rental.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 
 class RentedProductCard extends StatelessWidget {
   final RentedProductData productData;
@@ -54,7 +55,7 @@ class RentedProductCard extends StatelessWidget {
               children: [
                 _productImage(),
                 const SizedBox(width: 12),
-                Expanded(child: _info(statusColor)),
+                Expanded(child: _info(context, statusColor)),
                 _statusBadge(statusColor),
               ],
             ),
@@ -144,7 +145,7 @@ class RentedProductCard extends StatelessWidget {
     );
   }
 
-  Widget _info(Color statusColor) {
+  Widget _info(BuildContext context, Color statusColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,11 +158,32 @@ class RentedProductCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          isBorrower
-              ? 'Dueño: ${productData.otherUser.name}'
-              : 'Alquilador: ${productData.otherUser.name}',
-          style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+        Row(
+          children: [
+            Text(
+              isBorrower ? 'Dueño: ' : 'Alquilador: ',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileDetailScreen(userId: productData.otherUser.id),
+                  ),
+                );
+              },
+              child: Text(
+                productData.otherUser.name,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF5B5670),
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
