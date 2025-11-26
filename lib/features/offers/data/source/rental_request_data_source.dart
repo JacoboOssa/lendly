@@ -71,18 +71,29 @@ class RentalRequestDataSourceImpl implements RentalRequestDataSource {
         .map((p) => p['id'] as String)
         .toList();
 
-    // Luego obtener las solicitudes de esos productos
     // Si no hay productos, retornar lista vacía
     if (productIds.isEmpty) {
       return [];
     }
 
-    // Usar inFilter para filtrar por múltiples valores
-    final response = await Supabase.instance.client
+    // Construir query con OR para múltiples product_ids
+    // Usar el método 'or' con múltiples condiciones eq
+    var query = Supabase.instance.client
         .from('rental_request')
-        .select()
-        .inFilter('product_id', productIds)
-        .order('created_at', ascending: false);
+        .select();
+
+    // Construir la condición OR manualmente
+    if (productIds.length == 1) {
+      query = query.eq('product_id', productIds[0]);
+    } else {
+      // Para múltiples IDs, usar or con múltiples condiciones
+      final orConditions = productIds
+          .map((id) => 'product_id.eq.$id')
+          .join(',');
+      query = query.or(orConditions);
+    }
+
+    final response = await query.order('created_at', ascending: false);
 
     return (response as List)
         .map((data) => RentalRequest.fromJson(data))
