@@ -5,6 +5,7 @@ import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/offers/presentation/bloc/offers_sent_bloc.dart';
 import 'package:lendly_app/features/offers/domain/usecases/get_sent_rental_requests_usecase.dart';
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 
 class OffersSentScreen extends StatelessWidget {
   const OffersSentScreen({super.key});
@@ -181,9 +182,32 @@ class _SentOfferCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'Dueño: ${offer.owner.name}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF555555)),
+            Row(
+              children: [
+                const Text(
+                  'Dueño: ',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProfileDetailScreen(userId: offer.owner.id),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    offer.owner.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF5B5670),
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(

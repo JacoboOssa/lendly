@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: '/profile-detail', // Cambiar a '/login' en producción
+      initialRoute: '/login',
       routes: {
         '/login': (_) =>
             BlocProvider(create: (_) => LoginBloc(), child: LoginScreen()),
@@ -77,8 +77,6 @@ class MyApp extends StatelessWidget {
         '/manage-availability': (_) => const ManageAvailabilityScreen(),
         '/offers-received': (_) => const OffersReceivedScreen(),
         '/offers-sent': (_) => const OffersSentScreen(),
-
-        '/profile-detail': (_) => const ProfileDetailScreen(),
       },
     );
   }

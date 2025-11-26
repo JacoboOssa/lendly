@@ -6,6 +6,7 @@ import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
 import 'package:lendly_app/features/product/presentation/bloc/rental_request_bloc.dart';
 import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -501,12 +502,29 @@ class _OwnerCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  owner?.name ?? 'Usuario',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F1F1F),
+                GestureDetector(
+                  onTap: owner != null && owner.id != null
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfileDetailScreen(userId: owner.id),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: Text(
+                    owner?.name ?? 'Usuario',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: owner != null && owner.id != null
+                          ? const Color(0xFF5B5670)
+                          : const Color(0xFF1F1F1F),
+                      decoration: owner != null && owner.id != null
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
