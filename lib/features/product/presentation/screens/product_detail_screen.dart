@@ -7,6 +7,7 @@ import 'package:lendly_app/features/product/presentation/bloc/product_detail_blo
 import 'package:lendly_app/features/product/presentation/bloc/rental_request_bloc.dart';
 import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -538,16 +539,28 @@ class _OwnerCard extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF5B5670).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.message_outlined,
-              size: 20,
-              color: Color(0xFF5B5670),
+          GestureDetector(
+            onTap: owner != null && owner.id != null
+                ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatConversationScreen(otherUser: owner),
+                      ),
+                    );
+                  }
+                : null,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5B5670).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.message_outlined,
+                size: 20,
+                color: Color(0xFF5B5670),
+              ),
             ),
           ),
         ],

@@ -1,58 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/features/chat/presentation/bloc/conversations_list_bloc.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 
-class ChatsScreen extends StatefulWidget {
+class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
 
   @override
-  State<ChatsScreen> createState() => _ChatsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ConversationsListBloc()..add(LoadConversationsEvent()),
+      child: const _ChatsView(),
+    );
+  }
 }
 
-class _ChatsScreenState extends State<ChatsScreen> {
-  // Datos de prueba - En producción vendrían de un BLoC
-  final List<ChatItem> chats = [
-    ChatItem(
-      contactName: "Juan Pérez",
-      lastMessage: "¿Todavía está disponible la cámara?",
-      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-      isOnline: true,
-    ),
-    ChatItem(
-      contactName: "María González",
-      lastMessage: "Perfecto, nos vemos mañana para la entrega",
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-    ChatItem(
-      contactName: "Carlos Rodríguez",
-      lastMessage: "Gracias por el alquiler, todo en orden 👍",
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      unreadCount: 0,
-      isOnline: true,
-    ),
-    ChatItem(
-      contactName: "Ana Martínez",
-      lastMessage: "¿El precio incluye el envío?",
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 1,
-      isOnline: false,
-    ),
-    ChatItem(
-      contactName: "Luis Torres",
-      lastMessage: "Te envié la información por correo",
-      timestamp: DateTime.now().subtract(const Duration(days: 2)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-    ChatItem(
-      contactName: "Sofia Ramírez",
-      lastMessage: "¿Cuándo podemos coordinar la devolución?",
-      timestamp: DateTime.now().subtract(const Duration(days: 3)),
-      unreadCount: 0,
-      isOnline: true,
-    ),
-  ];
+class _ChatsView extends StatelessWidget {
+  const _ChatsView();
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
@@ -67,7 +31,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     } else if (difference.inDays < 7) {
       return 'Hace ${difference.inDays} días';
     } else {
-      final months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 
+      final months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
                       'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
       return '${timestamp.day} ${months[timestamp.month - 1]}';
     }
@@ -85,12 +49,49 @@ class _ChatsScreenState extends State<ChatsScreen> {
             _SearchBar(),
             const SizedBox(height: 16),
             Expanded(
-              child: chats.isEmpty
-                  ? _EmptyChats()
-                  : _ChatsList(
-                      chats: chats,
+              child: BlocBuilder<ConversationsListBloc, ConversationsListState>(
+                builder: (context, state) {
+                  if (state is ConversationsListLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                      ),
+                    );
+                  }
+                  if (state is ConversationsListError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            state.message,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF9E9E9E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  if (state is ConversationsListLoaded) {
+                    if (state.conversations.isEmpty) {
+                      return _EmptyChats();
+                    }
+                    return _ChatsList(
+                      conversations: state.conversations,
                       formatTimestamp: _formatTimestamp,
-                    ),
+                    );
+                  }
+                  return _EmptyChats();
+                },
+              ),
             ),
           ],
         ),
@@ -235,11 +236,11 @@ class _EmptyChats extends StatelessWidget {
 
 // Widget: Lista de chats
 class _ChatsList extends StatelessWidget {
-  final List<ChatItem> chats;
+  final List<ConversationWithUser> conversations;
   final String Function(DateTime) formatTimestamp;
 
   const _ChatsList({
-    required this.chats,
+    required this.conversations,
     required this.formatTimestamp,
   });
 
@@ -247,11 +248,11 @@ class _ChatsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: chats.length,
+      itemCount: conversations.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         return _ChatCard(
-          chat: chats[index],
+          conversationWithUser: conversations[index],
           formatTimestamp: formatTimestamp,
         );
       },
@@ -261,33 +262,32 @@ class _ChatsList extends StatelessWidget {
 
 // Widget: Tarjeta individual de chat
 class _ChatCard extends StatelessWidget {
-  final ChatItem chat;
+  final ConversationWithUser conversationWithUser;
   final String Function(DateTime) formatTimestamp;
 
   const _ChatCard({
-    required this.chat,
+    required this.conversationWithUser,
     required this.formatTimestamp,
   });
 
   @override
   Widget build(BuildContext context) {
+    final otherUser = conversationWithUser.otherUser;
+    final conversation = conversationWithUser.conversation;
+
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(
+        Navigator.push(
           context,
-          '/chat-conversation',
-          arguments: {
-            'contactName': chat.contactName,
-            'isOnline': chat.isOnline,
-          },
+          MaterialPageRoute(
+            builder: (_) => ChatConversationScreen(otherUser: otherUser),
+          ),
         );
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: chat.unreadCount > 0 
-              ? const Color(0xFFFAFAFA) 
-              : Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: const Color(0xFFE0E0E0),
@@ -296,10 +296,7 @@ class _ChatCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _ChatAvatar(
-              name: chat.contactName,
-              isOnline: chat.isOnline,
-            ),
+            _ChatAvatar(name: otherUser.name),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -310,13 +307,11 @@ class _ChatCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          chat.contactName,
-                          style: TextStyle(
+                          otherUser.name,
+                          style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: chat.unreadCount > 0 
-                                ? FontWeight.w700 
-                                : FontWeight.w600,
-                            color: const Color(0xFF2C2C2C),
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2C2C2C),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -324,42 +319,13 @@ class _ChatCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        formatTimestamp(chat.timestamp),
-                        style: TextStyle(
+                        formatTimestamp(conversation.createdAt),
+                        style: const TextStyle(
                           fontSize: 12,
-                          color: chat.unreadCount > 0
-                              ? const Color(0xFF555879)
-                              : const Color(0xFF9E9E9E),
-                          fontWeight: chat.unreadCount > 0
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                          color: Color(0xFF9E9E9E),
+                          fontWeight: FontWeight.normal,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          chat.lastMessage,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: chat.unreadCount > 0
-                                ? const Color(0xFF2C2C2C)
-                                : const Color(0xFF9E9E9E),
-                            fontWeight: chat.unreadCount > 0
-                                ? FontWeight.w500
-                                : FontWeight.normal,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (chat.unreadCount > 0) ...[
-                        const SizedBox(width: 8),
-                        _UnreadBadge(count: chat.unreadCount),
-                      ],
                     ],
                   ),
                 ],
@@ -375,96 +341,29 @@ class _ChatCard extends StatelessWidget {
 // Widget: Avatar del contacto
 class _ChatAvatar extends StatelessWidget {
   final String name;
-  final bool isOnline;
 
-  const _ChatAvatar({
-    required this.name,
-    required this.isOnline,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: const BoxDecoration(
-            color: Color(0xFF555879),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : 'U',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        if (isOnline)
-          Positioned(
-            bottom: 2,
-            right: 2,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// Widget: Badge de mensajes no leídos
-class _UnreadBadge extends StatelessWidget {
-  final int count;
-
-  const _UnreadBadge({required this.count});
+  const _ChatAvatar({required this.name});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF555879),
-        borderRadius: BorderRadius.circular(12),
+      width: 56,
+      height: 56,
+      decoration: const BoxDecoration(
+        color: Color(0xFF555879),
+        shape: BoxShape.circle,
       ),
-      child: Text(
-        count > 99 ? '99+' : count.toString(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'U',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 }
 
-// Modelo de datos para chat
-class ChatItem {
-  final String contactName;
-  final String lastMessage;
-  final DateTime timestamp;
-  final int unreadCount;
-  final bool isOnline;
-
-  ChatItem({
-    required this.contactName,
-    required this.lastMessage,
-    required this.timestamp,
-    required this.unreadCount,
-    required this.isOnline,
-  });
-}

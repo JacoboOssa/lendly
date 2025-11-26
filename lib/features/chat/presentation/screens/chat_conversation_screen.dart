@@ -1,74 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/domain/model/app_user.dart';
+import 'package:lendly_app/domain/model/message.dart';
+import 'package:lendly_app/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:intl/intl.dart';
 
-class ChatConversationScreen extends StatefulWidget {
-  final String contactName;
-  final bool isOnline;
+class ChatConversationScreen extends StatelessWidget {
+  final AppUser otherUser;
 
   const ChatConversationScreen({
     super.key,
-    required this.contactName,
-    required this.isOnline,
+    required this.otherUser,
   });
 
   @override
-  State<ChatConversationScreen> createState() => _ChatConversationScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ChatBloc()..add(InitializeChatEvent(otherUser: otherUser)),
+      child: _ChatConversationView(otherUser: otherUser),
+    );
+  }
 }
 
-class _ChatConversationScreenState extends State<ChatConversationScreen> {
+class _ChatConversationView extends StatefulWidget {
+  final AppUser otherUser;
+
+  const _ChatConversationView({required this.otherUser});
+
+  @override
+  State<_ChatConversationView> createState() => _ChatConversationViewState();
+}
+
+class _ChatConversationViewState extends State<_ChatConversationView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-
-  // Datos de prueba - En producción vendrían de un BLoC
-  final List<Message> messages = [
-    Message(
-      text: "Hola, ¿cómo estás?",
-      isSentByMe: false,
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    Message(
-      text: "Hola! Todo bien, ¿y tú?",
-      isSentByMe: true,
-      timestamp: DateTime.now().subtract(const Duration(hours: 2, minutes: 58)),
-    ),
-    Message(
-      text: "¿Todavía está disponible la cámara que publicaste?",
-      isSentByMe: false,
-      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
-    ),
-    Message(
-      text: "Sí, está disponible. ¿Te interesa alquilarla?",
-      isSentByMe: true,
-      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 40)),
-    ),
-    Message(
-      text: "Perfecto, me gustaría alquilarla por una semana. ¿Cuál sería el precio total?",
-      isSentByMe: false,
-      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
-    ),
-    Message(
-      text: "El precio es \$50 por día, entonces por una semana serían \$350. ¿Te parece bien?",
-      isSentByMe: true,
-      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 20)),
-    ),
-    Message(
-      text: "Sí, perfecto. ¿Cuándo podemos coordinar la entrega?",
-      isSentByMe: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-    ),
-  ];
 
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      messages.add(
-        Message(
-          text: _messageController.text,
-          isSentByMe: true,
-          timestamp: DateTime.now(),
-        ),
-      );
-    });
+    context.read<ChatBloc>().add(
+      SendMessageEvent(content: _messageController.text.trim()),
+    );
 
     _messageController.clear();
     _scrollToBottom();
@@ -107,14 +79,51 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         child: Column(
           children: [
             _ChatHeader(
-              contactName: widget.contactName,
-              isOnline: widget.isOnline,
+              contactName: widget.otherUser.name,
               onBackPressed: () => Navigator.pop(context),
             ),
             Expanded(
-              child: _MessagesList(
-                messages: messages,
-                scrollController: _scrollController,
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (context, state) {
+                  if (state is ChatLoadingState) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                      ),
+                    );
+                  }
+                  if (state is ChatErrorState) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            state.message,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF9E9E9E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  if (state is ChatLoadedState) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                    return _MessagesList(
+                      messages: state.messages,
+                      meId: state.meId!,
+                      scrollController: _scrollController,
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ),
             _MessageInput(
@@ -131,12 +140,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 // Widget: Header del chat
 class _ChatHeader extends StatelessWidget {
   final String contactName;
-  final bool isOnline;
   final VoidCallback onBackPressed;
 
   const _ChatHeader({
     required this.contactName,
-    required this.isOnline,
     required this.onBackPressed,
   });
 
@@ -180,44 +187,23 @@ class _ChatHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Stack(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF555879),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    contactName.isNotEmpty ? contactName[0].toUpperCase() : 'U',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: Color(0xFF555879),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                contactName.isNotEmpty ? contactName[0].toUpperCase() : 'U',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              if (isOnline)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -234,24 +220,7 @@ class _ChatHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  isOnline ? 'En línea' : 'Desconectado',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isOnline 
-                        ? const Color(0xFF4CAF50) 
-                        : const Color(0xFF9E9E9E),
-                  ),
-                ),
               ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: Color(0xFF555879),
             ),
           ),
         ],
@@ -263,28 +232,43 @@ class _ChatHeader extends StatelessWidget {
 // Widget: Lista de mensajes
 class _MessagesList extends StatelessWidget {
   final List<Message> messages;
+  final String meId;
   final ScrollController scrollController;
 
   const _MessagesList({
     required this.messages,
+    required this.meId,
     required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (messages.isEmpty) {
+      return const Center(
+        child: Text(
+          'No hay mensajes aún',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF9E9E9E),
+          ),
+        ),
+      );
+    }
+
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
+        final isSentByMe = message.senderId == meId;
         final showTimestamp = index == 0 ||
-            message.timestamp.difference(messages[index - 1].timestamp).inMinutes > 30;
+            message.createdAt.difference(messages[index - 1].createdAt).inMinutes > 30;
 
         return Column(
           children: [
-            if (showTimestamp) _TimeStampDivider(timestamp: message.timestamp),
-            _MessageBubble(message: message),
+            if (showTimestamp) _TimeStampDivider(timestamp: message.createdAt),
+            _MessageBubble(message: message, isSentByMe: isSentByMe),
           ],
         );
       },
@@ -341,8 +325,12 @@ class _TimeStampDivider extends StatelessWidget {
 // Widget: Burbuja de mensaje
 class _MessageBubble extends StatelessWidget {
   final Message message;
+  final bool isSentByMe;
 
-  const _MessageBubble({required this.message});
+  const _MessageBubble({
+    required this.message,
+    required this.isSentByMe,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -350,31 +338,30 @@ class _MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment:
-            message.isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if (!message.isSentByMe) const SizedBox(width: 0),
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: message.isSentByMe
+                color: isSentByMe
                     ? const Color(0xFF555879)
                     : const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(message.isSentByMe ? 16 : 4),
-                  bottomRight: Radius.circular(message.isSentByMe ? 4 : 16),
+                  bottomLeft: Radius.circular(isSentByMe ? 16 : 4),
+                  bottomRight: Radius.circular(isSentByMe ? 4 : 16),
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.text,
+                    message.content,
                     style: TextStyle(
                       fontSize: 15,
-                      color: message.isSentByMe
+                      color: isSentByMe
                           ? Colors.white
                           : const Color(0xFF2C2C2C),
                       height: 1.4,
@@ -382,10 +369,10 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _formatTime(message.timestamp),
+                    _formatTime(message.createdAt),
                     style: TextStyle(
                       fontSize: 11,
-                      color: message.isSentByMe
+                      color: isSentByMe
                           ? Colors.white.withOpacity(0.7)
                           : const Color(0xFF9E9E9E),
                     ),
@@ -394,7 +381,6 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (message.isSentByMe) const SizedBox(width: 0),
         ],
       ),
     );
@@ -452,14 +438,6 @@ class _MessageInput extends StatelessWidget {
                     horizontal: 20,
                     vertical: 12,
                   ),
-                  suffixIcon: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.attach_file,
-                      color: Color(0xFF9E9E9E),
-                      size: 22,
-                    ),
-                  ),
                 ),
                 style: const TextStyle(
                   fontSize: 15,
@@ -506,15 +484,3 @@ class _SendButton extends StatelessWidget {
   }
 }
 
-// Modelo de datos para mensaje
-class Message {
-  final String text;
-  final bool isSentByMe;
-  final DateTime timestamp;
-
-  Message({
-    required this.text,
-    required this.isSentByMe,
-    required this.timestamp,
-  });
-}

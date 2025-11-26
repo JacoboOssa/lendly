@@ -8,6 +8,7 @@ import 'package:lendly_app/features/offers/domain/usecases/approve_rental_reques
 import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request_usecase.dart';
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 
 class OffersReceivedScreen extends StatelessWidget {
   const OffersReceivedScreen({super.key});
@@ -367,7 +368,12 @@ class _OfferCard extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    // TODO: Navegar a chat
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatConversationScreen(otherUser: offer.borrower),
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.chat_bubble_outline),
                   color: const Color(0xFF5B5670),
