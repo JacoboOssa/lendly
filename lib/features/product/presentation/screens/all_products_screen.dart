@@ -4,6 +4,7 @@ import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/screens/product_detail_screen.dart';
 import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
+import 'package:lendly_app/features/product/presentation/bloc/rental_request_bloc.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key});
@@ -218,8 +219,11 @@ class _ProductCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BlocProvider(
-              create: (context) => ProductDetailBloc(),
+            builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (context) => ProductDetailBloc()),
+                BlocProvider(create: (context) => RentalRequestBloc()),
+              ],
               child: ProductDetailScreen(product: product),
             ),
           ),

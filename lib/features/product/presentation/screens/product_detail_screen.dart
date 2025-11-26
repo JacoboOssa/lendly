@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
+import 'package:lendly_app/features/product/presentation/bloc/rental_request_bloc.dart';
 import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -103,9 +105,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             final product = state.product;
             final owner = state.owner;
 
-            return SafeArea(
-              child: Column(
-                children: [
+            return MultiBlocListener(
+              listeners: [
+                BlocListener<RentalRequestBloc, RentalRequestState>(
+                  listener: (context, rentalState) {
+                    if (rentalState is RentalRequestSuccess) {
+                      _showConfirmationModal(context, rentalState.request);
+                    } else if (rentalState is RentalRequestError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(rentalState.message),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+              child: SafeArea(
+                child: Column(
+                  children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -242,14 +261,89 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ),
-                  _ActionButton(price: _formatPrice(product.pricePerDayCents)),
+                  _ActionButton(
+                    price: _formatPrice(product.pricePerDayCents),
+                    product: product,
+                  ),
                 ],
               ),
+            ),
             );
           }
 
           return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  void _showConfirmationModal(BuildContext context, RentalRequest request) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Solicitud Enviada',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F1F1F),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Tu solicitud de alquiler ha sido enviada exitosamente.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF6D6D6D),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Del ${request.startDate.day}/${request.startDate.month}/${request.startDate.year} '
+              'al ${request.endDate.day}/${request.endDate.month}/${request.endDate.year}',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1F1F1F),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'El propietario revisará tu solicitud y te notificará la respuesta.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF9E9E9E),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cerrar el modal
+              Navigator.of(context).pop(); // Volver a la pantalla anterior
+            },
+            child: const Text(
+              'Entendido',
+              style: TextStyle(
+                color: Color(0xFF5B5670),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -446,8 +540,9 @@ class _OwnerCard extends StatelessWidget {
 
 class _ActionButton extends StatelessWidget {
   final String price;
+  final Product product;
 
-  const _ActionButton({required this.price});
+  const _ActionButton({required this.price, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -471,16 +566,26 @@ class _ActionButton extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(28),
               onTap: () async {
-                final DateTimeRange? range = await showRentalDateRangePicker(context);
-                if (range != null) {
-                  // Aquí iría la lógica para proceder con el alquiler
-                  // Por ahora, solo mostramos un snackbar de confirmación
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Has seleccionado del ${range.start.day}/${range.start.month}/${range.start.year} '
-                        'al ${range.end.day}/${range.end.month}/${range.end.year}',
+                if (product.id == null) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error: El producto no tiene un ID válido'),
+                        backgroundColor: Colors.red,
                       ),
+                    );
+                  }
+                  return;
+                }
+
+                final DateTimeRange? range = await showRentalDateRangePicker(context);
+                if (range != null && context.mounted) {
+                  // Crear la solicitud de alquiler usando el BLoC
+                  context.read<RentalRequestBloc>().add(
+                    CreateRentalRequest(
+                      productId: product.id!,
+                      startDate: range.start,
+                      endDate: range.end,
                     ),
                   );
                 }
