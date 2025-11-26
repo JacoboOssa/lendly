@@ -21,6 +21,7 @@ import 'package:lendly_app/features/offers/presentation/screens/offers_received_
 import 'package:lendly_app/features/offers/presentation/screens/offers_sent_screen.dart';
 import 'package:lendly_app/features/rented/presentation/screens/rented_products_screen.dart';
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
+import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,6 +84,7 @@ class MyApp extends StatelessWidget {
         '/rented-products': (_) => const RentedProductsScreen(),
         '/return-product': (_) => const ReturnProductScreen(),
         '/chats': (_) => const ChatsScreen(),
+        '/return': (_) => const ReturnScreen(),
       },
     );
   }

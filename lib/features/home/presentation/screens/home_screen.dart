@@ -153,9 +153,9 @@ class _HomeHeader extends StatelessWidget {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Probar Checkout'),
+                    title: const Text('Probar Devolución'),
                     content: const Text(
-                      '¿Quieres probar la pantalla de checkout?',
+                      '¿Quieres probar la pantalla de devolución?',
                     ),
                     actions: [
                       TextButton(
@@ -165,7 +165,7 @@ class _HomeHeader extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          Navigator.pushNamed(context, '/checkout');
+                          Navigator.pushNamed(context, '/return');
                         },
                         child: const Text('Sí'),
                       ),
@@ -175,7 +175,7 @@ class _HomeHeader extends StatelessWidget {
               );
             },
             icon: const Icon(
-              Icons.shopping_bag_outlined,
+              Icons.keyboard_return,
               color: Colors.white,
               size: 18,
             ),
