@@ -18,6 +18,16 @@ class RentalRepositoryImpl implements RentalRepository {
   }
 
   @override
+  Future<Rental?> getRentalById(String rentalId) {
+    return dataSource.getRentalById(rentalId);
+  }
+
+  @override
+  Future<Rental> updateRentalStatus(String rentalId, RentalStatus status) {
+    return dataSource.updateRentalStatus(rentalId, status);
+  }
+
+  @override
   Future<List<Rental>> getRentalsByBorrower(String borrowerId, {String? status}) {
     return dataSource.getRentalsByBorrower(borrowerId, status: status);
   }

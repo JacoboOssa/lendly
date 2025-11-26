@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 abstract class RentalDataSource {
   Future<Rental> createRental(Rental rental);
   Future<Rental?> getRentalByRequestId(String rentalRequestId);
+  Future<Rental?> getRentalById(String rentalId);
+  Future<Rental> updateRentalStatus(String rentalId, RentalStatus status);
   Future<List<Rental>> getRentalsByBorrower(String borrowerId, {String? status});
   Future<List<Rental>> getRentalsByProduct(String productId);
   Future<List<Rental>> getRentalsByLender(String lenderId, {String? status});
@@ -31,6 +33,41 @@ class RentalDataSourceImpl implements RentalDataSource {
 
     if (response == null) return null;
     return Rental.fromJson(response);
+  }
+
+  @override
+  Future<Rental?> getRentalById(String rentalId) async {
+    final response = await Supabase.instance.client
+        .from('rental')
+        .select()
+        .eq('id', rentalId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Rental.fromJson(response);
+  }
+
+  @override
+  Future<Rental> updateRentalStatus(String rentalId, RentalStatus status) async {
+    final response = await Supabase.instance.client
+        .from('rental')
+        .update({'status': _statusToDbString(status)})
+        .eq('id', rentalId)
+        .select()
+        .single();
+
+    return Rental.fromJson(response);
+  }
+
+  String _statusToDbString(RentalStatus status) {
+    switch (status) {
+      case RentalStatus.active:
+        return 'ACTIVE';
+      case RentalStatus.completed:
+        return 'COMPLETED';
+      case RentalStatus.cancelled:
+        return 'CANCELLED';
+    }
   }
 
   @override

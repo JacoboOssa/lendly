@@ -5,6 +5,7 @@ import 'package:lendly_app/features/rented/presentation/widgets/rented_product_c
 import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
+import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
 
 class RentedProductsScreen extends StatelessWidget {
   const RentedProductsScreen({super.key});
@@ -130,7 +131,21 @@ class _RentedProductsView extends StatelessWidget {
                       ),
                     );
                   },
-                  onReturn: () => Navigator.pushNamed(context, '/return-product'),
+                  onReturn: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReturnScreen(
+                              rental: productData.rental,
+                              rentalRequest: productData.rentalRequest,
+                            ),
+                          ),
+                        );
+                        // Si la devolución fue exitosa, recargar la lista
+                        if (result == true && context.mounted) {
+                          context.read<RentedProductsBloc>().add(LoadRentedProductsEvent());
+                        }
+                      },
                   onPay: productData.payment != null && !productData.payment!.paid
                       ? () async {
                           final result = await Navigator.push(

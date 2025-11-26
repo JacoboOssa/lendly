@@ -34,16 +34,20 @@ class GetRentedProductsUseCase {
         paymentRepository = paymentRepository ??
             PaymentRepositoryImpl(PaymentDataSourceImpl());
 
-  // Para borrower: obtener sus rentals activos
+  // Para borrower: obtener sus rentals activos y completados
   Future<List<RentedProductData>> executeForBorrower(String borrowerId) async {
-    final rentals = await rentalRepository.getRentalsByBorrower(borrowerId, status: 'ACTIVE');
-    return await _buildRentedProductDataList(rentals, isBorrower: true);
+    final activeRentals = await rentalRepository.getRentalsByBorrower(borrowerId, status: 'ACTIVE');
+    final completedRentals = await rentalRepository.getRentalsByBorrower(borrowerId, status: 'COMPLETED');
+    final allRentals = [...activeRentals, ...completedRentals];
+    return await _buildRentedProductDataList(allRentals, isBorrower: true);
   }
 
-  // Para lender: obtener rentals de sus productos
+  // Para lender: obtener rentals de sus productos activos y completados
   Future<List<RentedProductData>> executeForLender(String lenderId) async {
-    final rentals = await rentalRepository.getRentalsByLender(lenderId, status: 'ACTIVE');
-    return await _buildRentedProductDataList(rentals, isBorrower: false);
+    final activeRentals = await rentalRepository.getRentalsByLender(lenderId, status: 'ACTIVE');
+    final completedRentals = await rentalRepository.getRentalsByLender(lenderId, status: 'COMPLETED');
+    final allRentals = [...activeRentals, ...completedRentals];
+    return await _buildRentedProductDataList(allRentals, isBorrower: false);
   }
 
   Future<List<RentedProductData>> _buildRentedProductDataList(

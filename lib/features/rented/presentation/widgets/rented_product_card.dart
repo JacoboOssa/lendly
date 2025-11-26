@@ -69,7 +69,7 @@ class RentedProductCard extends StatelessWidget {
                   icon: const Icon(Icons.chat_bubble_outline),
                   color: _primary,
                 ),
-                if (isBorrower) ...[
+                if (isBorrower && productData.rental.status == RentalStatus.active) ...[
                   // Si no ha pagado, mostrar solo el botón de pagar
                   if (productData.payment != null && !productData.payment!.paid) ...[
                     const SizedBox(width: 8),
@@ -88,20 +88,22 @@ class RentedProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ] else ...[
+                  ] else if (!productData.isLate) ...[
                     // Si ya pagó, mostrar botón de devolución
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: onReturn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onReturn,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Devolución',
-                        style: TextStyle(color: Colors.white),
+                        child: const Text(
+                          'Devolución',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
                   ],
@@ -172,7 +174,9 @@ class RentedProductCard extends StatelessWidget {
 
   Widget _statusBadge(Color statusColor) {
     String statusText;
-    if (productData.isLate) {
+    if (productData.rental.status == RentalStatus.completed) {
+      statusText = isBorrower ? 'DEVUELTO' : 'RECIBIDO';
+    } else if (productData.isLate) {
       statusText = 'RETRASADO';
     } else if (productData.rental.status == RentalStatus.active) {
       statusText = 'APROBADO';

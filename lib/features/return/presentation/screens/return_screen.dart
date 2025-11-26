@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:lendly_app/domain/model/rental.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
+import 'package:lendly_app/features/return/domain/usecases/create_return_usecase.dart';
+import 'package:intl/intl.dart';
 
 /// Pantalla de devolución de producto.
 /// Permite al usuario devolver un producto alquilado con fecha, hora, notas y fotos.
 class ReturnScreen extends StatefulWidget {
-  const ReturnScreen({super.key});
+  final Rental rental;
+  final RentalRequest rentalRequest;
+
+  const ReturnScreen({
+    super.key,
+    required this.rental,
+    required this.rentalRequest,
+  });
 
   @override
   State<ReturnScreen> createState() => _ReturnScreenState();
@@ -13,95 +22,54 @@ class ReturnScreen extends StatefulWidget {
 
 class _ReturnScreenState extends State<ReturnScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _experienceController = TextEditingController();
 
-  DateTime? _returnDate;
   TimeOfDay? _returnTime;
-  String? _wouldRentAgain; // 'Si' o 'No'
-  final ImagePicker _picker = ImagePicker();
-  List<XFile> _images = [];
-
-  // Dirección del propietario (NO editable, viene del alquiler aceptado)
-  // TODO: Obtener esta dirección del alquiler real cuando se implemente
-  final String _ownerAddress = 'Calle 123 #45-67, Cali, Colombia';
+  final CreateReturnUseCase _createReturnUseCase = CreateReturnUseCase();
 
   bool _isSubmitted = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _experienceController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) {
-      setState(() => _returnDate = picked);
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() => _returnTime = picked);
-    }
-  }
-
-  Future<void> _pickImages() async {
-    try {
-      final List<XFile>? picked = await _picker.pickMultiImage(
-        imageQuality: 80,
-        maxWidth: 1200,
-      );
-      if (picked != null && picked.isNotEmpty) {
-        setState(() => _images.addAll(picked));
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudieron seleccionar imágenes')),
-      );
-    }
-  }
-
-  void _removeImageAt(int index) {
-    setState(() => _images.removeAt(index));
-  }
-
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_returnDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona la fecha de devolución')),
-      );
-      return;
-    }
     if (_returnTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona la hora de devolución')),
       );
       return;
     }
-    if (_wouldRentAgain == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Indica si volverías a alquilar el producto'),
-        ),
-      );
-      return;
-    }
 
-    // Simular envío exitoso
-    setState(() => _isSubmitted = true);
+    setState(() => _isLoading = true);
+
+    try {
+      await _createReturnUseCase.execute(
+        rentalId: widget.rental.id!,
+        proposedReturnTime: _returnTime!,
+        note: _experienceController.text.trim().isEmpty
+            ? null
+            : _experienceController.text.trim(),
+      );
+
+      if (mounted) {
+        setState(() {
+          _isSubmitted = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al procesar la devolución: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -140,42 +108,28 @@ class _ReturnScreenState extends State<ReturnScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ReturnFormField(
-                  controller: _nameController,
-                  label: 'Nombre y apellido',
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Ingresa tu nombre'
-                      : null,
+                _ReadOnlyDateField(
+                  date: widget.rentalRequest.endDate,
                 ),
                 const SizedBox(height: 12),
-                _DateTimeField(
+                _TimeField(
                   label: 'Hora de devolucion',
-                  date: _returnDate,
                   time: _returnTime,
-                  onPickDate: _pickDate,
-                  onPickTime: _pickTime,
+                  onTimePicked: (time) => setState(() => _returnTime = time),
                 ),
                 const SizedBox(height: 12),
-                _ReadOnlyAddressField(address: _ownerAddress),
-                const SizedBox(height: 12),
-                _WouldRentAgainField(
-                  value: _wouldRentAgain,
-                  onChanged: (v) => setState(() => _wouldRentAgain = v),
-                ),
+                _ReadOnlyAddressField(address: widget.rental.pickupLocation),
                 const SizedBox(height: 12),
                 _ReturnFormField(
                   controller: _experienceController,
                   label: 'Experiencia con el producto (notas extra)...',
                   maxLines: 4,
                 ),
-                const SizedBox(height: 20),
-                _PhotoUploadSection(
-                  images: _images,
-                  onPickImages: _pickImages,
-                  onRemoveAt: _removeImageAt,
-                ),
                 const SizedBox(height: 32),
-                _ReturnButton(onSubmit: _submit),
+                _ReturnButton(
+                  onSubmit: _submit,
+                  isLoading: _isLoading,
+                ),
                 const SizedBox(height: 20),
               ],
             ),
@@ -223,25 +177,80 @@ class _ReturnFormField extends StatelessWidget {
   }
 }
 
-class _DateTimeField extends StatelessWidget {
-  final String label;
-  final DateTime? date;
-  final TimeOfDay? time;
-  final VoidCallback onPickDate;
-  final VoidCallback onPickTime;
+class _ReadOnlyDateField extends StatelessWidget {
+  final DateTime date;
 
-  const _DateTimeField({
+  const _ReadOnlyDateField({required this.date});
+
+  String _formatDate(DateTime d) {
+    return DateFormat('dd/MM/yyyy').format(d);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Fecha de devolución',
+                      style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDate(date),
+                      style: const TextStyle(
+                        color: Color(0xFF1F1F1F),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: Text(
+            'Fecha acordada en la solicitud (no editable)',
+            style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 11),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TimeField extends StatefulWidget {
+  final String label;
+  final TimeOfDay? time;
+  final Function(TimeOfDay) onTimePicked;
+
+  const _TimeField({
     required this.label,
-    required this.date,
     required this.time,
-    required this.onPickDate,
-    required this.onPickTime,
+    required this.onTimePicked,
   });
 
-  String _formatDate(DateTime? d) => d == null
-      ? ''
-      : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  @override
+  State<_TimeField> createState() => _TimeFieldState();
+}
 
+class _TimeFieldState extends State<_TimeField> {
   String _formatTime(TimeOfDay? t) => t == null
       ? ''
       : '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -249,37 +258,19 @@ class _DateTimeField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        showModalBottomSheet(
+      onTap: () async {
+        final time = await showTimePicker(
           context: context,
-          builder: (_) => SafeArea(
-            child: Wrap(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: const Text('Seleccionar fecha'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    onPickDate();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.access_time),
-                  title: const Text('Seleccionar hora'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    onPickTime();
-                  },
-                ),
-              ],
-            ),
-          ),
+          initialTime: widget.time ?? TimeOfDay.now(),
         );
+        if (time != null) {
+          widget.onTimePicked(time);
+        }
       },
       child: AbsorbPointer(
         child: TextFormField(
           decoration: InputDecoration(
-            hintText: label,
+            hintText: widget.label,
             hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
             filled: true,
             fillColor: const Color(0xFFF5F5F5),
@@ -292,14 +283,12 @@ class _DateTimeField extends StatelessWidget {
               vertical: 16,
             ),
             suffixIcon: const Icon(
-              Icons.arrow_drop_down,
+              Icons.access_time,
               color: Color(0xFF9E9E9E),
             ),
           ),
           controller: TextEditingController(
-            text: date != null && time != null
-                ? '${_formatDate(date)} ${_formatTime(time)}'
-                : '',
+            text: widget.time != null ? _formatTime(widget.time) : '',
           ),
         ),
       ),
@@ -361,221 +350,16 @@ class _ReadOnlyAddressField extends StatelessWidget {
   }
 }
 
-class _WouldRentAgainField extends StatelessWidget {
-  final String? value;
-  final Function(String) onChanged;
 
-  const _WouldRentAgainField({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Volverias alquilar el producto (Si/No)',
-                  style: TextStyle(
-                    color: value == null
-                        ? const Color(0xFF9E9E9E)
-                        : const Color(0xFF1F1F1F),
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => onChanged('Si'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: value == 'Si'
-                        ? const Color(0xFF5B5670)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: value == 'Si'
-                          ? const Color(0xFF5B5670)
-                          : const Color(0xFF9E9E9E),
-                    ),
-                  ),
-                  child: Text(
-                    'Si',
-                    style: TextStyle(
-                      color: value == 'Si'
-                          ? Colors.white
-                          : const Color(0xFF9E9E9E),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => onChanged('No'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: value == 'No'
-                        ? const Color(0xFF5B5670)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: value == 'No'
-                          ? const Color(0xFF5B5670)
-                          : const Color(0xFF9E9E9E),
-                    ),
-                  ),
-                  child: Text(
-                    'No',
-                    style: TextStyle(
-                      color: value == 'No'
-                          ? Colors.white
-                          : const Color(0xFF9E9E9E),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PhotoUploadSection extends StatelessWidget {
-  final List<XFile> images;
-  final Future<void> Function() onPickImages;
-  final void Function(int) onRemoveAt;
-
-  const _PhotoUploadSection({
-    required this.images,
-    required this.onPickImages,
-    required this.onRemoveAt,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (images.isNotEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 100,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (c, i) => Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      File(images[i].path),
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    right: 4,
-                    top: 4,
-                    child: GestureDetector(
-                      onTap: () => onRemoveAt(i),
-                      child: const CircleAvatar(
-                        radius: 12,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.close, size: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemCount: images.length,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: onPickImages,
-            icon: const Icon(Icons.photo_library),
-            label: const Text('Agregar más fotos'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5B5670),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return GestureDetector(
-      onTap: () async {
-        showModalBottomSheet(
-          context: context,
-          builder: (_) => SafeArea(
-            child: Wrap(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Seleccionar fotos'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    onPickImages();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      child: Container(
-        height: 120,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE8E8E8),
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.upload_file, size: 28, color: Color(0xFF9E9E9E)),
-            SizedBox(height: 8),
-            Text(
-              'Subir fotos del objeto',
-              style: TextStyle(color: Color(0xFF9E9E9E)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _ReturnButton extends StatelessWidget {
-  final VoidCallback onSubmit;
+  final Future<void> Function() onSubmit;
+  final bool isLoading;
 
-  const _ReturnButton({required this.onSubmit});
+  const _ReturnButton({
+    required this.onSubmit,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -583,21 +367,30 @@ class _ReturnButton extends StatelessWidget {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: onSubmit,
+        onPressed: isLoading ? null : onSubmit,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF5B5670),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text(
-          'Devolver',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text(
+                'Devolver',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -646,8 +439,7 @@ class _ReturnConfirmationScreen extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Navegar a la pantalla de productos alquilados cuando exista
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true); // Retornar true para indicar éxito
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5B5670),
