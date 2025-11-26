@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/offers/presentation/bloc/offers_received_bloc.dart';
 import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_usecase.dart';
@@ -24,8 +25,67 @@ class OffersReceivedScreen extends StatelessWidget {
   }
 }
 
-class _OffersView extends StatelessWidget {
+class _OffersView extends StatefulWidget {
   const _OffersView();
+
+  @override
+  State<_OffersView> createState() => _OffersViewState();
+}
+
+class _OffersViewState extends State<_OffersView> {
+  bool _isLoadingDialogShown = false;
+
+  void _showLoadingDialog(BuildContext context) {
+    if (!_isLoadingDialogShown && context.mounted) {
+      _isLoadingDialogShown = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false,
+          child: const Center(
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Aprobando solicitud...',
+                      style: TextStyle(
+                        color: Color(0xFF2C2C2C),
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _hideLoadingDialog(BuildContext context) {
+    if (_isLoadingDialogShown && context.mounted) {
+      _isLoadingDialogShown = false;
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  @override
+  void dispose() {
+    // Cerrar el diálogo si el widget se desmonta mientras está mostrando el diálogo
+    if (_isLoadingDialogShown && mounted) {
+      _isLoadingDialogShown = false;
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,20 +109,25 @@ class _OffersView extends StatelessWidget {
       ),
       body: BlocConsumer<OffersReceivedBloc, OffersReceivedState>(
         listener: (context, state) {
-          if (state is OfferActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else if (state is OffersError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+          if (state is OfferActionInProgress) {
+            _showLoadingDialog(context);
+          } else if (state is OffersLoaded || state is OffersError || state is OfferActionSuccess) {
+            _hideLoadingDialog(context);
+            if (state is OffersError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            } else if (state is OfferActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
           }
         },
         builder: (context, state) {
@@ -166,7 +231,7 @@ class _OfferCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -195,7 +260,7 @@ class _OfferCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -219,6 +284,60 @@ class _OfferCard extends StatelessWidget {
               'Periodo: ${_formatDate(offer.request.startDate)} - ${_formatDate(offer.request.endDate)}',
               style: const TextStyle(fontSize: 13, color: Color(0xFF777777)),
             ),
+            if (offer.request.status == RentalRequestStatus.approved && offer.rental != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 16, color: Color(0xFF5B5670)),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Punto de recogida:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF5B5670),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      offer.rental!.pickupLocation,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time, size: 16, color: Color(0xFF5B5670)),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Hora de recogida:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF5B5670),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDateTime(offer.rental!.pickupAt),
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -232,7 +351,7 @@ class _OfferCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 if (offer.request.status == RentalRequestStatus.pending) ...[
                   ElevatedButton(
-                    onPressed: () => _showApproveDialog(context, offer.request.id!),
+                    onPressed: () => _showApproveDialog(context, offer),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF5B5670),
                       shape: RoundedRectangleBorder(
@@ -300,57 +419,158 @@ class _OfferCard extends StatelessWidget {
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
-  void _showApproveDialog(BuildContext context, String requestId) {
+  void _showApproveDialog(BuildContext context, RentalRequestView offer) {
+    // Obtener el bloc antes de abrir el dialog
+    final bloc = context.read<OffersReceivedBloc>();
+    final pickupLocationController = TextEditingController();
+    TimeOfDay? selectedTime;
+
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text(
-            'Aprobar solicitud',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F1F1F),
-            ),
-          ),
-          content: const Text(
-            '¿Estás seguro de que deseas aprobar esta solicitud de alquiler?',
-            style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFF6D6D6D),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(color: Color(0xFF9E9E9E)),
+        return StatefulBuilder(
+          builder: (dialogContext, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                context.read<OffersReceivedBloc>().add(
-                  ApproveOfferEvent(requestId),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5B5670),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              title: const Text(
+                'Aprobar solicitud',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F1F1F),
                 ),
               ),
-              child: const Text(
-                'Aprobar',
-                style: TextStyle(color: Colors.white),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Fecha de recogida: ${_formatDate(offer.request.startDate)}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2C2C2C),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Acuerda el punto y hora de recogida:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF6D6D6D),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: pickupLocationController,
+                      decoration: InputDecoration(
+                        labelText: 'Punto de recogida',
+                        hintText: 'Ej: Calle 123, Barrio Centro',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        if (!dialogContext.mounted) return;
+                        final pickedTime = await showTimePicker(
+                          context: dialogContext,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null && dialogContext.mounted) {
+                          setState(() {
+                            selectedTime = pickedTime;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, color: Color(0xFF5B5670)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                selectedTime != null
+                                    ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                                    : 'Seleccionar hora',
+                                style: TextStyle(
+                                  color: selectedTime != null
+                                      ? Colors.black
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: pickupLocationController.text.isNotEmpty &&
+                          selectedTime != null
+                      ? () {
+                          Navigator.pop(ctx);
+                          // Construir DateTime con la fecha de inicio + hora seleccionada
+                          final pickupDateTime = DateTime(
+                            offer.request.startDate.year,
+                            offer.request.startDate.month,
+                            offer.request.startDate.day,
+                            selectedTime!.hour,
+                            selectedTime!.minute,
+                          );
+                          // Usar el bloc obtenido antes del dialog
+                          bloc.add(
+                            ApproveOfferEvent(
+                              offer.request.id!,
+                              pickupLocationController.text,
+                              pickupDateTime,
+                            ),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5B5670),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Aprobar',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
   }
 }

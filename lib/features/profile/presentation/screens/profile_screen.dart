@@ -164,6 +164,16 @@ class ProfileScreen extends StatelessWidget {
                         },
                       ),
                     ],
+                    if (user.role.toLowerCase() == 'borrower') ...[
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.send_outlined,
+                        text: 'Mis solicitudes',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/offers-sent');
+                        },
+                      ),
+                    ],
 
                     // const SizedBox(height: 16),
                     // _buildMenuOption(

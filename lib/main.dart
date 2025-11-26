@@ -16,6 +16,7 @@ import 'package:lendly_app/features/product/presentation/screens/all_products_sc
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lendly_app/features/product/presentation/screens/manage_availability_screen.dart';
 import 'package:lendly_app/features/offers/presentation/screens/offers_received_screen.dart';
+import 'package:lendly_app/features/offers/presentation/screens/offers_sent_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
         ),
         '/manage-availability': (_) => const ManageAvailabilityScreen(),
         '/offers-received': (_) => const OffersReceivedScreen(),
+        '/offers-sent': (_) => const OffersSentScreen(),
       },
     );
   }
