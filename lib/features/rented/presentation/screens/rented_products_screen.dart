@@ -4,6 +4,7 @@ import 'package:lendly_app/features/rented/presentation/bloc/rented_products_blo
 import 'package:lendly_app/features/rented/presentation/widgets/rented_product_card.dart';
 import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 
 class RentedProductsScreen extends StatelessWidget {
   const RentedProductsScreen({super.key});
@@ -130,9 +131,19 @@ class _RentedProductsView extends StatelessWidget {
                     );
                   },
                   onReturn: () => Navigator.pushNamed(context, '/return-product'),
-                  onPay: productData.rental.status.toString() == 'RentalStatus.active' &&
-                          !productData.isLate
-                      ? () => Navigator.pushNamed(context, '/checkout')
+                  onPay: productData.payment != null && !productData.payment!.paid
+                      ? () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CheckoutScreen(payment: productData.payment!),
+                            ),
+                          );
+                          // Si el pago fue exitoso, recargar la lista
+                          if (result == true && context.mounted) {
+                            context.read<RentedProductsBloc>().add(LoadRentedProductsEvent());
+                          }
+                        }
                       : null,
                 );
               },
@@ -142,22 +153,6 @@ class _RentedProductsView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-    );
-  }
-}
-
-class CheckoutScreen extends StatelessWidget {
-  const CheckoutScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: const Color(0xFF2C2C2C),
-      ),
-      body: const Center(child: Text('Pantalla de pago (placeholder)')),
     );
   }
 }

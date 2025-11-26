@@ -2,6 +2,7 @@ import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
+import 'package:lendly_app/domain/model/payment.dart';
 import 'package:lendly_app/features/offers/data/repositories/rental_repository_impl.dart';
 import 'package:lendly_app/features/offers/data/source/rental_data_source.dart';
 import 'package:lendly_app/features/offers/domain/repositories/rental_repository.dart';
@@ -9,22 +10,29 @@ import 'package:lendly_app/features/offers/data/repositories/rental_request_repo
 import 'package:lendly_app/features/offers/data/source/rental_request_data_source.dart';
 import 'package:lendly_app/features/offers/domain/repositories/rental_request_repository.dart';
 import 'package:lendly_app/features/product/data/source/product_data_source.dart';
+import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
+import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
+import 'package:lendly_app/features/checkout/domain/repositories/payment_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GetRentedProductsUseCase {
   final RentalRepository rentalRepository;
   final RentalRequestRepository rentalRequestRepository;
   final ProductDataSource productDataSource;
+  final PaymentRepository paymentRepository;
 
   GetRentedProductsUseCase({
     RentalRepository? rentalRepository,
     RentalRequestRepository? rentalRequestRepository,
     ProductDataSource? productDataSource,
+    PaymentRepository? paymentRepository,
   })  : rentalRepository = rentalRepository ??
             RentalRepositoryImpl(RentalDataSourceImpl()),
         rentalRequestRepository = rentalRequestRepository ??
             RentalRequestRepositoryImpl(RentalRequestDataSourceImpl()),
-        productDataSource = productDataSource ?? ProductDataSourceImpl();
+        productDataSource = productDataSource ?? ProductDataSourceImpl(),
+        paymentRepository = paymentRepository ??
+            PaymentRepositoryImpl(PaymentDataSourceImpl());
 
   // Para borrower: obtener sus rentals activos
   Future<List<RentedProductData>> executeForBorrower(String borrowerId) async {
@@ -63,11 +71,15 @@ class GetRentedProductsUseCase {
       final otherUser = await productDataSource.getOwnerInfo(otherUserId);
       if (otherUser == null) continue;
 
+      // Obtener payment si existe
+      final payment = await paymentRepository.getPaymentByRentalId(rental.id!);
+
       result.add(RentedProductData(
         rental: rental,
         rentalRequest: rentalRequest,
         product: product,
         otherUser: otherUser,
+        payment: payment,
       ));
     }
 
@@ -81,12 +93,14 @@ class RentedProductData {
   final RentalRequest rentalRequest;
   final Product product;
   final AppUser otherUser;
+  final Payment? payment;
 
   RentedProductData({
     required this.rental,
     required this.rentalRequest,
     required this.product,
     required this.otherUser,
+    this.payment,
   });
 
   DateTime get dueDate => rentalRequest.endDate;

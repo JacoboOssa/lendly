@@ -83,7 +83,6 @@ class MyApp extends StatelessWidget {
         '/rented-products': (_) => const RentedProductsScreen(),
         '/return-product': (_) => const ReturnProductScreen(),
         '/chats': (_) => const ChatsScreen(),
-        '/checkout': (_) => const CheckoutScreen(),
       },
     );
   }

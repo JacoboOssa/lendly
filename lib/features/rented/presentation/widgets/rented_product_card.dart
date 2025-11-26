@@ -70,35 +70,41 @@ class RentedProductCard extends StatelessWidget {
                   color: _primary,
                 ),
                 if (isBorrower) ...[
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: onReturn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  // Si no ha pagado, mostrar solo el botón de pagar
+                  if (productData.payment != null && !productData.payment!.paid) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onPay,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Pagar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Devolución',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (productData.rental.status == RentalStatus.active &&
-                      !productData.isLate &&
-                      onPay != null)
-                    OutlinedButton(
-                      onPressed: onPay,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _primary,
-                        side: BorderSide(color: _primary),
+                  ] else ...[
+                    // Si ya pagó, mostrar botón de devolución
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: onReturn,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text('Pagar'),
+                      child: const Text(
+                        'Devolución',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
+                  ],
                 ],
               ],
             ),
@@ -157,7 +163,7 @@ class RentedProductCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Límite: ${_formatDate(productData.dueDate)}',
+          '${_formatDate(productData.startDate)} - ${_formatDate(productData.dueDate)}',
           style: const TextStyle(fontSize: 12, color: Color(0xFF777777)),
         ),
       ],

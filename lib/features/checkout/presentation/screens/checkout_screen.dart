@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/domain/model/payment.dart';
+import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
+import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
+import 'package:lendly_app/features/checkout/domain/repositories/payment_repository.dart';
+import 'package:intl/intl.dart';
 
-/// Pantalla de Checkout (solo UI, sin lógica de backend).
+/// Pantalla de Checkout con datos reales del payment.
 /// Permite capturar dirección de envío y método de pago antes de finalizar.
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final Payment payment;
+
+  const CheckoutScreen({
+    super.key,
+    required this.payment,
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -14,6 +24,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _hasPayment = false;
   String _savedAddress = '';
   String _savedCardLast4 = '';
+  bool _isProcessing = false;
+  final PaymentRepository _paymentRepository = PaymentRepositoryImpl(PaymentDataSourceImpl());
+
+  String _formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: 0,
+      locale: 'es_CO',
+    );
+    return formatter.format(amount);
+  }
+
+  double get _subtotal => widget.payment.totalAmount;
+  double get _tax => 0.0; // Impuesto (puede ser calculado si es necesario)
+  double get _total => _subtotal + _tax;
+
+  Future<void> _processPayment() async {
+    if (!_hasAddress || !_hasPayment) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor completa la dirección y el método de pago'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      await _paymentRepository.updatePaymentStatus(widget.payment.id!, true);
+      
+      if (mounted) {
+        Navigator.of(context).pop(true); // Retornar true para indicar que se pagó
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pago realizado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al procesar el pago: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,16 +145,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       onTap: () => _showPaymentSheet(),
                     ),
                     const SizedBox(height: 32),
-                    _SummarySection(),
+                    _SummarySection(
+                      subtotal: _subtotal,
+                      tax: _tax,
+                      total: _total,
+                      formatCurrency: _formatCurrency,
+                    ),
                   ],
                 ),
               ),
             ),
-            // TODO: totalLabel es MOCK. Reemplazar con el total real calculado del carrito
             _CheckoutFooter(
-              totalLabel: '\$218.000/mes',
-              buttonLabel: 'Realizar pedido',
-              onSubmit: () {},
+              totalLabel: _formatCurrency(_total),
+              buttonLabel: _isProcessing ? 'Procesando...' : 'Realizar pedido',
+              onSubmit: _isProcessing ? null : _processPayment,
             ),
           ],
         ),
@@ -222,16 +296,23 @@ class _CheckoutCard extends StatelessWidget {
 }
 
 class _SummarySection extends StatelessWidget {
-  const _SummarySection();
+  final double subtotal;
+  final double tax;
+  final double total;
+  final String Function(double) formatCurrency;
+
+  const _SummarySection({
+    required this.subtotal,
+    required this.tax,
+    required this.total,
+    required this.formatCurrency,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Estos son datos MOCK. Reemplazar con los precios reales del carrito
-    // Los valores deben venir de: subtotal de productos, costo de envío calculado, impuestos
     final entries = [
-      _SummaryEntry(label: 'Subtotal', value: '\$200.000'),
-      _SummaryEntry(label: 'Costo de envío', value: '\$18.000'),
-      _SummaryEntry(label: 'Impuesto', value: '\$0.00'),
+      _SummaryEntry(label: 'Subtotal', value: formatCurrency(subtotal)),
+      _SummaryEntry(label: 'Impuesto', value: formatCurrency(tax)),
     ];
 
     return Column(
@@ -244,10 +325,10 @@ class _SummarySection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const _SummaryRow(
+        _SummaryRow(
           entry: _SummaryEntry(
             label: 'Total',
-            value: '\$218.000/mes',
+            value: formatCurrency(total),
             highlight: true,
           ),
         ),
@@ -303,12 +384,12 @@ class _SummaryEntry {
 class _CheckoutFooter extends StatelessWidget {
   final String totalLabel;
   final String buttonLabel;
-  final VoidCallback onSubmit;
+  final VoidCallback? onSubmit;
 
   const _CheckoutFooter({
     required this.totalLabel,
     required this.buttonLabel,
-    required this.onSubmit,
+    this.onSubmit,
   });
 
   @override
@@ -346,13 +427,17 @@ class _CheckoutFooter extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
+            Expanded(
             child: SizedBox(
               height: 48,
               child: OutlinedButton(
                 onPressed: onSubmit,
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF5B5670)),
+                  side: BorderSide(
+                    color: onSubmit != null
+                        ? const Color(0xFF5B5670)
+                        : Colors.grey,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
