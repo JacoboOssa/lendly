@@ -14,6 +14,8 @@ import 'package:lendly_app/features/home/presentation/bloc/available_products_bl
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
+import 'package:lendly_app/features/profile/presentation/screens/chats_screen.dart';
+import 'package:lendly_app/features/profile/presentation/screens/chat_conversation_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lendly_app/features/product/presentation/screens/manage_availability_screen.dart';
 import 'package:lendly_app/features/offers/presentation/screens/offers_received_screen.dart';
@@ -43,7 +45,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      initialRoute: '/login',
+      initialRoute: '/chats', // Cambiar a '/login' en producción
       routes: {
         '/login': (_) =>
             BlocProvider(create: (_) => LoginBloc(), child: LoginScreen()),
@@ -77,6 +79,16 @@ class MyApp extends StatelessWidget {
         '/manage-availability': (_) => const ManageAvailabilityScreen(),
         '/offers-received': (_) => const OffersReceivedScreen(),
         '/offers-sent': (_) => const OffersSentScreen(),
+
+        '/chats': (_) => const ChatsScreen(),
+        
+        '/chat-conversation': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return ChatConversationScreen(
+            contactName: args['contactName'] as String,
+            isOnline: args['isOnline'] as bool,
+          );
+        },
       },
     );
   }
