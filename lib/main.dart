@@ -29,9 +29,13 @@ import 'package:lendly_app/features/rental_history/presentation/screens/rental_h
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
 import 'package:lendly_app/core/services/user_session_service.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar formato de fecha en español
+  await initializeDateFormatting('es', null);
 
   await Supabase.initialize(
     url: 'https://shkdqehaexwwnpivuxeg.supabase.co',

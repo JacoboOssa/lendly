@@ -145,6 +145,10 @@ class _RentalHistoryCard extends StatelessWidget {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  String _formatCreatedDate(DateTime date) {
+    return DateFormat('EEE d MMM yyyy', 'es').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusColor = rentalData.rental.status == RentalStatus.completed
@@ -180,6 +184,11 @@ class _RentalHistoryCard extends StatelessWidget {
             Text(
               '${_formatDate(rentalData.startDate)} - ${_formatDate(rentalData.dueDate)}',
               style: const TextStyle(fontSize: 12, color: Color(0xFF777777)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Creado: ${_formatCreatedDate(rentalData.rental.createdAt)}',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
             ),
             const SizedBox(height: 8),
             _statusBadge(statusColor),

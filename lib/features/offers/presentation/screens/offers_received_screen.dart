@@ -309,6 +309,11 @@ class _OfferCard extends StatelessWidget {
               'Periodo: ${_formatDate(offer.request.startDate)} - ${_formatDate(offer.request.endDate)}',
               style: const TextStyle(fontSize: 13, color: Color(0xFF777777)),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Solicitado: ${_formatCreatedDate(offer.request.createdAt)}',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
+            ),
             if (offer.request.status == RentalRequestStatus.approved && offer.rental != null) ...[
               const SizedBox(height: 8),
               Container(
@@ -448,6 +453,10 @@ class _OfferCard extends StatelessWidget {
 
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  String _formatCreatedDate(DateTime date) {
+    return DateFormat('EEE d MMM yyyy', 'es').format(date);
+  }
 
   void _showApproveDialog(BuildContext context, RentalRequestView offer) {
     // Obtener el bloc antes de abrir el dialog
