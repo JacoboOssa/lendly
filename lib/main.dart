@@ -14,6 +14,8 @@ import 'package:lendly_app/features/home/presentation/bloc/available_products_bl
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
 import 'package:lendly_app/features/product/presentation/screens/all_products_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:lendly_app/features/product/presentation/screens/manage_availability_screen.dart';
+import 'package:lendly_app/features/offers/presentation/screens/offers_received_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +45,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (_) =>
             BlocProvider(create: (_) => LoginBloc(), child: LoginScreen()),
-
         '/signup': (_) =>
             BlocProvider(create: (_) => RegisterBloc(), child: SignupScreen()),
 
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
           create: (_) => AllProductsBloc(),
           child: AllProductsScreen(),
         ),
+        '/manage-availability': (_) => const ManageAvailabilityScreen(),
+        '/offers-received': (_) => const OffersReceivedScreen(),
       },
     );
   }

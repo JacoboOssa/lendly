@@ -155,8 +155,24 @@ class ProfileScreen extends StatelessWidget {
                           Navigator.pushNamed(context, '/manage-products');
                         },
                       ),
+                      const SizedBox(height: 16),
+                      _buildMenuOption(
+                        icon: Icons.inbox_outlined,
+                        text: 'Solicitudes recibidas',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/offers-received');
+                        },
+                      ),
                     ],
 
+                    const SizedBox(height: 16),
+                    _buildMenuOption(
+                      icon: Icons.inventory_2_outlined,
+                      text: 'Gestionar disponibilidad',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/manage-availability');
+                      },
+                    ),
                     const SizedBox(height: 16),
                     _buildMenuOption(
                       icon: Icons.message_outlined,

@@ -34,7 +34,7 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
   String _priceUnit = '/Hora';
   bool _termsAccepted = false;
   final ImagePicker _picker = ImagePicker();
-  List<XFile> _images = [];
+  final List<XFile> _images = [];
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -75,7 +75,7 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile>? picked = await _picker.pickMultiImage(
+      final List<XFile> picked = await _picker.pickMultiImage(
         imageQuality: 80,
         maxWidth: 1200,
       );
@@ -309,7 +309,7 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({Key? key}) : super(key: key);
+  const _Header({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +351,7 @@ class _Header extends StatelessWidget {
 
 class _ProductForm extends StatelessWidget {
   const _ProductForm({
-    Key? key,
+    super.key,
     required this.titleController,
     required this.priceController,
     required this.priceUnit,
@@ -369,7 +369,7 @@ class _ProductForm extends StatelessWidget {
     required this.endDate,
     required this.onPickStartDate,
     required this.onPickEndDate,
-  }) : super(key: key);
+  });
 
   final TextEditingController titleController;
   final TextEditingController priceController;
@@ -438,7 +438,7 @@ class _ProductForm extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: category,
+                  initialValue: category,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -459,7 +459,7 @@ class _ProductForm extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: condition,
+                  initialValue: condition,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 12),
@@ -510,7 +510,7 @@ class _ProductForm extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: priceUnit,
+                  initialValue: priceUnit,
                   isDense: true,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -612,12 +612,12 @@ class _ProductForm extends StatelessWidget {
 
 class _PhotoUploader extends StatelessWidget {
   const _PhotoUploader({
-    Key? key,
+    super.key,
     required this.images,
     required this.onPickImages,
     required this.onTakePhoto,
     required this.onRemoveAt,
-  }) : super(key: key);
+  });
 
   final List<XFile> images;
   final Future<void> Function() onPickImages;
@@ -730,7 +730,7 @@ class _PhotoUploader extends StatelessWidget {
 }
 
 class _FooterActions extends StatelessWidget {
-  const _FooterActions({Key? key, required this.onSubmit}) : super(key: key);
+  const _FooterActions({super.key, required this.onSubmit});
 
   final VoidCallback onSubmit;
 
@@ -762,8 +762,7 @@ class _FooterActions extends StatelessWidget {
 
 /// Simple visual container with dashed border used as upload area.
 class DottedBorderContainer extends StatelessWidget {
-  const DottedBorderContainer({Key? key, required this.child})
-    : super(key: key);
+  const DottedBorderContainer({super.key, required this.child});
 
   final Widget child;
 

@@ -404,8 +404,9 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Ingresa la contraseña';
-              if (v.length < 6)
+              if (v.length < 6) {
                 return 'La contraseña debe tener al menos 6 caracteres';
+              }
               return null;
             },
           ),
