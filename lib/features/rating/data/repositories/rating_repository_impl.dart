@@ -31,5 +31,43 @@ class RatingRepositoryImpl implements RatingRepository {
   Future<Rating?> getRatingByRentalAndType(String rentalId, String raterUserId, RatingType type) {
     return dataSource.getRatingByRentalAndType(rentalId, raterUserId, type);
   }
+
+  @override
+  Future<List<Rating>> getRatingsByUserIdPaginated(
+    String userId, {
+    RatingType? type,
+    int page = 0,
+    int pageSize = 10,
+  }) {
+    return dataSource.getRatingsByUserIdPaginated(
+      userId,
+      type: type,
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  @override
+  Future<List<Rating>> getRatingsByProductIdPaginated(
+    String productId, {
+    int page = 0,
+    int pageSize = 10,
+  }) {
+    return dataSource.getRatingsByProductIdPaginated(
+      productId,
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  @override
+  Future<double?> getUserAverageRating(String userId, {RatingType? type}) {
+    return dataSource.getUserAverageRating(userId, type: type);
+  }
+
+  @override
+  Future<double?> getProductAverageRating(String productId) {
+    return dataSource.getProductAverageRating(productId);
+  }
 }
 

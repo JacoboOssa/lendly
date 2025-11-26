@@ -6,6 +6,9 @@ import 'package:lendly_app/features/profile/domain/usecases/get_user_account_cre
 import 'package:lendly_app/features/profile/domain/usecases/get_user_profile_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_user_transactions_count_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/profile_detail_bloc.dart';
+import 'package:lendly_app/features/rating/domain/usecases/get_user_average_rating_usecase.dart';
+import 'package:lendly_app/features/rating/domain/usecases/get_user_ratings_paginated_usecase.dart';
+import 'package:intl/intl.dart';
 
 class ProfileDetailScreen extends StatelessWidget {
   final String userId;
@@ -25,6 +28,8 @@ class ProfileDetailScreen extends StatelessWidget {
         getTransactionsCountUseCase: GetUserTransactionsCountUseCase(
           ProfileDetailRepositoryImpl(ProfileDetailDataSourceImpl()),
         ),
+        getUserAverageRatingUseCase: GetUserAverageRatingUseCase(),
+        getUserRatingsPaginatedUseCase: GetUserRatingsPaginatedUseCase(),
       )..add(LoadProfileDetail(userId)),
       child: const _ProfileDetailView(),
     );
@@ -123,8 +128,18 @@ class _ProfileDetailView extends StatelessWidget {
                               userRole: state.user.role,
                             ),
                             const SizedBox(height: 32),
-                            // Reviews section removida temporalmente
-                            const SizedBox(height: 32),
+                            if (state.averageRating != null) ...[
+                              _RatingSection(
+                                averageRating: state.averageRating!,
+                                ratings: state.ratings,
+                                hasMoreRatings: state.hasMoreRatings,
+                                isLoadingMore: state.isLoadingMoreRatings,
+                                onLoadMore: () {
+                                  context.read<ProfileDetailBloc>().add(LoadMoreRatings());
+                                },
+                              ),
+                              const SizedBox(height: 32),
+                            ],
                           ],
                         ),
                       ),
@@ -361,6 +376,188 @@ class _StatItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Widget: Sección de calificaciones y reseñas
+class _RatingSection extends StatelessWidget {
+  final double averageRating;
+  final List<dynamic> ratings;
+  final bool hasMoreRatings;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
+
+  const _RatingSection({
+    required this.averageRating,
+    required this.ratings,
+    required this.hasMoreRatings,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Calificación',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2C2C2C),
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    averageRating.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C2C2C),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (ratings.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Text(
+              'Reseñas',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2C2C2C),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: ratings.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final rating = ratings[index];
+                return _ReviewCard(rating: rating);
+              },
+            ),
+            if (hasMoreRatings) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: isLoadingMore
+                    ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                      )
+                    : TextButton(
+                        onPressed: onLoadMore,
+                        child: const Text(
+                          'Cargar más reseñas',
+                          style: TextStyle(
+                            color: Color(0xFF5B5670),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ] else ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Aún no hay reseñas',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF9E9E9E),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// Widget: Tarjeta de reseña individual
+class _ReviewCard extends StatelessWidget {
+  final dynamic rating;
+
+  const _ReviewCard({required this.rating});
+
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _buildStars(int rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        return Icon(
+          index < rating ? Icons.star : Icons.star_border,
+          color: Colors.amber,
+          size: 16,
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildStars(rating.rating),
+              const Spacer(),
+              Text(
+                _formatDate(rating.createdAt),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF9E9E9E),
+                ),
+              ),
+            ],
+          ),
+          if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              rating.comment!,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF2C2C2C),
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

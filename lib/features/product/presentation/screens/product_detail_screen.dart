@@ -8,6 +8,7 @@ import 'package:lendly_app/features/product/presentation/bloc/rental_request_blo
 import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:intl/intl.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -256,6 +257,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 const SizedBox(height: 12),
                                 _OwnerCard(owner: owner),
                                 const SizedBox(height: 32),
+                                if (state.averageRating != null) ...[
+                                  _ProductRatingSection(
+                                    averageRating: state.averageRating!,
+                                    ratings: state.ratings,
+                                    hasMoreRatings: state.hasMoreRatings,
+                                    isLoadingMore: state.isLoadingMoreRatings,
+                                    onLoadMore: () {
+                                      context.read<ProductDetailBloc>().add(LoadMoreProductRatings());
+                                    },
+                                  ),
+                                  const SizedBox(height: 32),
+                                ],
                               ],
                             ),
                           ),
@@ -655,6 +668,202 @@ class _ActionButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Widget: Sección de calificaciones y reseñas del producto
+class _ProductRatingSection extends StatelessWidget {
+  final double averageRating;
+  final List<dynamic> ratings;
+  final bool hasMoreRatings;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
+
+  const _ProductRatingSection({
+    required this.averageRating,
+    required this.ratings,
+    required this.hasMoreRatings,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Calificaciones',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1F1F1F),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFAFAFA),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFE0E0E0),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Calificación promedio',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C2C2C),
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2C2C2C),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (ratings.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Text(
+                  'Reseñas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C2C2C),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: ratings.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final rating = ratings[index];
+                    return _ProductReviewCard(rating: rating);
+                  },
+                ),
+                if (hasMoreRatings) ...[
+                  const SizedBox(height: 16),
+                  Center(
+                    child: isLoadingMore
+                        ? const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                          )
+                        : TextButton(
+                            onPressed: onLoadMore,
+                            child: const Text(
+                              'Cargar más reseñas',
+                              style: TextStyle(
+                                color: Color(0xFF5B5670),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ] else ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Aún no hay reseñas',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF9E9E9E),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Widget: Tarjeta de reseña individual del producto
+class _ProductReviewCard extends StatelessWidget {
+  final dynamic rating;
+
+  const _ProductReviewCard({required this.rating});
+
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _buildStars(int rating) {
+    return Row(
+      children: List.generate(5, (index) {
+        return Icon(
+          index < rating ? Icons.star : Icons.star_border,
+          color: Colors.amber,
+          size: 16,
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildStars(rating.rating),
+              const Spacer(),
+              Text(
+                _formatDate(rating.createdAt),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF9E9E9E),
+                ),
+              ),
+            ],
+          ),
+          if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              rating.comment!,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF2C2C2C),
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
