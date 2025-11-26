@@ -59,30 +59,8 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24),
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFAFAFA),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    // Botón de regreso
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Color(0xFF2C2C2C),
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+            Column(
+              children: [
 
                     // Avatar
                     Container(
@@ -291,8 +269,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
           ],
         ),
       ),
