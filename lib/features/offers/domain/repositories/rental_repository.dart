@@ -1,6 +1,5 @@
 import 'package:lendly_app/domain/model/rental.dart';
 
-import 'package:lendly_app/domain/model/rental.dart';
 
 abstract class RentalRepository {
   Future<Rental> createRental(Rental rental);

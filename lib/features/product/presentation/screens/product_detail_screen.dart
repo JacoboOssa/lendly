@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/product/presentation/bloc/product_detail_bloc.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:lendly_app/features/product/presentation/bloc/rental_request_bloc.dart';
 import 'package:lendly_app/features/product/presentation/widgets/rental_date_picker.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
@@ -66,9 +68,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         builder: (context, state) {
           if (state is ProductDetailLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-              ),
+              child: LoadingSpinner(),
             );
           }
 
@@ -94,7 +94,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B5670),
+                        backgroundColor: AppColors.primary,
                       ),
                       child: const Text('Volver'),
                     ),
@@ -115,12 +115,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     if (rentalState is RentalRequestSuccess) {
                       _showConfirmationModal(context, rentalState.request);
                     } else if (rentalState is RentalRequestError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(rentalState.message),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      ToastHelper.showError(context, rentalState.message);
                     }
                   },
                 ),
@@ -135,28 +130,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     child: Row(
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 18,
-                              color: Color(0xFF2C2C2C),
-                            ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 18,
+                            color: AppColors.textPrimary,
                           ),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
@@ -199,7 +181,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF5B5670),
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   ),
@@ -209,7 +191,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF5B5670),
+                                    color: AppColors.primary,
                                   ),
                                 ),
                                 const SizedBox(height: 24),
@@ -353,7 +335,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: const Text(
               'Entendido',
               style: TextStyle(
-                color: Color(0xFF5B5670),
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -398,8 +380,8 @@ class _ProductImage extends StatelessWidget {
                           ? loadingProgress.cumulativeBytesLoaded /
                                 loadingProgress.expectedTotalBytes!
                           : null,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF5B5670),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
                       ),
                     ),
                   );
@@ -440,10 +422,10 @@ class _InfoRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF5B5670).withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 20, color: const Color(0xFF5B5670)),
+          child: Icon(icon, size: 20, color: AppColors.primary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -495,7 +477,7 @@ class _OwnerCard extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: const BoxDecoration(
-              color: Color(0xFF5B5670),
+              color: AppColors.primary,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -533,7 +515,7 @@ class _OwnerCard extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: owner != null && owner.id != null
-                          ? const Color(0xFF5B5670)
+                          ? AppColors.primary
                           : const Color(0xFF1F1F1F),
                       decoration: owner != null && owner.id != null
                           ? TextDecoration.underline
@@ -566,13 +548,13 @@ class _OwnerCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF5B5670).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.message_outlined,
                 size: 20,
-                color: Color(0xFF5B5670),
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -605,19 +587,14 @@ class _ActionButton extends StatelessWidget {
         child: Container(
           width: double.infinity,
           child: Material(
-            color: const Color(0xFF5B5670),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(28),
             child: InkWell(
               borderRadius: BorderRadius.circular(28),
               onTap: () async {
                 if (product.id == null) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Error: El producto no tiene un ID válido'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    ToastHelper.showError(context, 'Error: El producto no tiene un ID válido');
                   }
                   return;
                 }
@@ -769,15 +746,13 @@ class _ProductRatingSection extends StatelessWidget {
                   const SizedBox(height: 16),
                   Center(
                     child: isLoadingMore
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                          )
+                        ? const LoadingSpinner()
                         : TextButton(
                             onPressed: onLoadMore,
                             child: const Text(
                               'Cargar más reseñas',
                               style: TextStyle(
-                                color: Color(0xFF5B5670),
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/skeleton_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/publish/presentation/bloc/manage_products_bloc.dart';
@@ -29,25 +34,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF2C2C2C),
-            size: 18,
-          ),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: const Text(
-          'Productos listados',
-          style: TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
+      appBar: const CustomAppBar(
+        title: 'Productos listados',
       ),
       body: SafeArea(
         child: Padding(
@@ -55,20 +43,17 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           child: BlocConsumer<ManageProductsBloc, ManageProductsState>(
             listener: (context, state) {
               if (state is ManageProductsError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ToastHelper.showError(context, state.message);
               }
               // Ya no necesitamos recargar manualmente aquí porque el BLoC
               // hace la operación + recarga automáticamente después del spinner
             },
             builder: (context, state) {
-              // Skeleton solo en carga inicial
+              // Spinner en carga inicial
               if (state is ManageProductsLoading && state.isInitialLoad) {
-                return _ProductsSkeletonLoader();
+                return const Center(
+                  child: LoadingSpinner(),
+                );
               }
 
               if (state is ManageProductsLoaded) {
@@ -87,11 +72,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                       Container(
                         color: Colors.black.withOpacity(0.3),
                         child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF5B5670),
-                            ),
-                          ),
+                          child: LoadingSpinner(),
                         ),
                       ),
                   ],
@@ -363,7 +344,7 @@ class _ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF5B5670),
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -374,7 +355,7 @@ class _ProductCard extends StatelessWidget {
                         child: OutlinedButton(
                           onPressed: onEdit,
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF98A1BC)),
+                            side: const BorderSide(color: AppColors.primary),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -382,7 +363,7 @@ class _ProductCard extends StatelessWidget {
                           child: const Text(
                             'Editar',
                             style: TextStyle(
-                              color: Color(0xFF98A1BC),
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -394,7 +375,7 @@ class _ProductCard extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: onDelete,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5B5670),
+                            backgroundColor: AppColors.primary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -679,7 +660,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                     height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF98A1BC),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -706,100 +687,3 @@ class _EditProductSheetState extends State<_EditProductSheet> {
   }
 }
 
-// Widget Skeleton Loader para productos
-class _ProductsSkeletonLoader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE8E8E8)),
-          ),
-          child: Row(
-            children: [
-              // Skeleton de imagen
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Skeleton de contenido
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Skeleton título
-                    Container(
-                      height: 16,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Skeleton descripción
-                    Container(
-                      height: 12,
-                      width: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Skeleton precio y botones
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          height: 14,
-                          width: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}

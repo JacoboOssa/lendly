@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/skeleton_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/home/presentation/bloc/available_products_bloc.dart';
@@ -29,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, state) {
           if (state is AvailableProductsInitialLoading ||
               state is AvailableProductsIdle) {
-            return _FullPageSkeletonLoader();
+            return const FullPageSkeletonLoader();
           }
 
           if (state is AvailableProductsError) {
@@ -144,7 +147,7 @@ class _HomeHeader extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF5B5670),
+            color: AppColors.primary,
             shape: BoxShape.circle,
           ),
           child: IconButton(
@@ -239,7 +242,7 @@ class _SectionTitle extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               color: onActionTap != null
-                  ? const Color(0xFF5B5670)
+                  ? AppColors.primary
                   : const Color(0xFF6B6B6B),
               fontWeight: onActionTap != null
                   ? FontWeight.w600
@@ -284,7 +287,7 @@ class _CategoriesRow extends StatelessWidget {
                   child: Icon(
                     _mapIcon(item['icon']!),
                     size: 30,
-                    color: const Color(0xFF5B5670),
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -319,180 +322,6 @@ class _CategoriesRow extends StatelessWidget {
       default:
         return Icons.category;
     }
-  }
-}
-
-// Skeleton loader for products
-class _ProductsSkeletonLoader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 320,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          return Container(
-            width: 220,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Skeleton loader for the entire home page
-class _FullPageSkeletonLoader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header skeleton
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 100,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Search bar skeleton
-            Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Section title skeleton
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 100,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Container(
-                  width: 60,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Categories skeleton
-            SizedBox(
-              height: 100,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 5,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 60,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Products section title skeleton
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 150,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Container(
-                  width: 60,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Products skeleton
-            _ProductsSkeletonLoader(),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -635,7 +464,7 @@ class _ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF5B5670),
+                      color: AppColors.primary,
                     ),
                   ),
                 ],

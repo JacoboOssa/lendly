@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/domain/model/message.dart';
@@ -87,9 +89,7 @@ class _ChatConversationViewState extends State<_ChatConversationView> {
                 builder: (context, state) {
                   if (state is ChatLoadingState) {
                     return const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                      ),
+                      child: LoadingSpinner(),
                     );
                   }
                   if (state is ChatErrorState) {
@@ -182,7 +182,7 @@ class _ChatHeader extends StatelessWidget {
               child: const Icon(
                 Icons.arrow_back_ios_new,
                 size: 18,
-                color: Color(0xFF2C2C2C),
+                color: AppColors.textPrimary,
               ),
             ),
           ),

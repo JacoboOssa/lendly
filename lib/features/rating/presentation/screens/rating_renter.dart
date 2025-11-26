@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/rating/presentation/bloc/rating_renter_bloc.dart';
 
@@ -30,9 +33,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
 
   void _submit() {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una calificación')),
-      );
+      ToastHelper.showError(context, 'Por favor selecciona una calificación');
       return;
     }
 
@@ -55,9 +56,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
         if (state is RatingRenterSuccess) {
           Navigator.of(context).pop(true);
         } else if (state is RatingRenterError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ToastHelper.showError(context, state.message);
         }
       },
       child: Scaffold(
@@ -88,7 +87,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                       child: const Icon(
                         Icons.arrow_back_ios_new,
                         size: 18,
-                        color: Color(0xFF2C2C2C),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -120,7 +119,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                           width: 64,
                           height: 64,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -181,7 +180,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                       return ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5B5670),
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(

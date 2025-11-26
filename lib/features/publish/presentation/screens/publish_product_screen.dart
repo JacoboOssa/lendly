@@ -8,6 +8,9 @@ import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/domain/model/availability.dart';
 import 'package:lendly_app/features/publish/presentation/bloc/create_product_bloc.dart';
 import 'package:lendly_app/main.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 /// Pantalla para publicar un producto/objeto.
 /// Código separado en widgets pequeños: _Header, _ProductForm, _PhotoUploader, _FooterActions
@@ -83,9 +86,7 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
         setState(() => _images.addAll(picked));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudieron seleccionar imágenes')),
-      );
+      ToastHelper.showError(context, 'No se pudieron seleccionar imágenes');
     }
   }
 
@@ -100,7 +101,8 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('No se pudo tomar la foto')));
+      );
+      ToastHelper.showError(context, 'No se pudo tomar la foto');
     }
   }
 
@@ -111,18 +113,12 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_termsAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes aceptar términos y condiciones')),
-      );
+      ToastHelper.showError(context, 'Debes aceptar términos y condiciones');
       return;
     }
 
     if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes seleccionar fechas de disponibilidad'),
-        ),
-      );
+      ToastHelper.showError(context, 'Debes seleccionar fechas de disponibilidad');
       return;
     }
 
@@ -132,7 +128,8 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
       if (currentUser == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
+        );
+        ToastHelper.showError(context, 'Debes iniciar sesión');
         return;
       }
 
@@ -181,7 +178,8 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      );
+      ToastHelper.showError(context, 'Error: $e');
     }
   }
 
@@ -190,36 +188,14 @@ class _PublishProductScreenState extends State<PublishProductScreen> {
     return BlocListener<CreateProductBloc, CreateProductState>(
       listener: (context, state) {
         if (state is CreateProductLoading) {
-          // Mostrar indicador de carga
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()),
-          );
+          LoadingDialog.show(context, message: 'Publicando producto...');
         } else if (state is CreateProductSuccess) {
-          // Cerrar indicador de carga
-          Navigator.of(context).pop();
-
-          // Mostrar mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Producto publicado exitosamente!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Volver a la pantalla anterior
+          LoadingDialog.hide(context);
+          ToastHelper.showSuccess(context, '¡Producto publicado exitosamente!');
           Navigator.of(context).pop();
         } else if (state is CreateProductError) {
-          // Cerrar indicador de carga si está abierto
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-
-          // Mostrar error
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-          );
+          LoadingDialog.hide(context);
+          ToastHelper.showError(context, state.message);
         }
       },
       child: Scaffold(
@@ -327,8 +303,8 @@ class _Header extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: const Icon(
               Icons.arrow_back_ios_new,
-              size: 16,
-              color: Color(0xFF1F1F1F),
+              size: 18,
+              color: AppColors.textPrimary,
             ),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
@@ -741,7 +717,7 @@ class _FooterActions extends StatelessWidget {
       height: 56,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF98A1BC),
+          backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/rental_history/presentation/bloc/rental_history_bloc.dart';
 import 'package:lendly_app/features/rental_history/domain/usecases/get_rental_history_usecase.dart';
@@ -29,34 +32,17 @@ class _RentalHistoryView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF2C2C2C),
-            size: 18,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          UserSessionService().isBorrower
-              ? 'Historial de alquileres'
-              : 'Historial de préstamos',
-          style: const TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: UserSessionService().isBorrower
+            ? 'Historial de alquileres'
+            : 'Historial de préstamos',
+        onBackPressed: () => Navigator.of(context).pop(),
       ),
       body: BlocBuilder<RentalHistoryBloc, RentalHistoryState>(
           builder: (context, state) {
             if (state is RentalHistoryLoading) {
               return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                ),
+                child: LoadingSpinner(),
               );
             }
 
@@ -278,7 +264,7 @@ class _RentalHistoryCard extends StatelessWidget {
         color: const Color(0xFFE0E0E0),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(Icons.photo_camera_outlined, color: Color(0xFF5B5670)),
+      child: const Icon(Icons.photo_camera_outlined, color: AppColors.primary),
     );
   }
 
@@ -314,7 +300,7 @@ class _RentalHistoryCard extends StatelessWidget {
                 rentalData.otherUser.name,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF5B5670),
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   decoration: TextDecoration.underline,
                 ),

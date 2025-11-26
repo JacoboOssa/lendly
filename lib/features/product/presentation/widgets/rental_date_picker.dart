@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 typedef DateRangeCallback = void Function(DateTimeRange range);
 
@@ -145,7 +146,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 			if (inRange) {
 				if (isStart || isEnd) {
 					deco = BoxDecoration(
-						color: const Color(0xFF5B5670),
+						color: AppColors.primary,
 						shape: BoxShape.rectangle,
 					);
 					textStyle = const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
@@ -292,7 +293,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
 																style: ElevatedButton.styleFrom(
 																	minimumSize: const Size.fromHeight(52),
 																	shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-																	backgroundColor: start != null && end != null ? const Color(0xFF5B5670) : Colors.grey[400],
+																	backgroundColor: start != null && end != null ? AppColors.primary : Colors.grey[400],
 																),
 																onPressed: start != null && end != null
 																		? () {
@@ -327,7 +328,7 @@ class _RentalDatePickerDialogState extends State<RentalDatePickerDialog> {
                             child: const SizedBox(
                               width: 40,
                               height: 40,
-                              child: Center(child: Icon(Icons.close, size: 18, color: Color(0xFF5B5670))),
+                              child: Center(child: Icon(Icons.close, size: 18, color: AppColors.primary)),
                             ),
                           ),
                         ),

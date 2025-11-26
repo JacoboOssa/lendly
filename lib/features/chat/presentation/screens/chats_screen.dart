@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/chat/presentation/bloc/conversations_list_bloc.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
@@ -53,9 +55,7 @@ class _ChatsView extends StatelessWidget {
                 builder: (context, state) {
                   if (state is ConversationsListLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                      ),
+                      child: LoadingSpinner(),
                     );
                   }
                   if (state is ConversationsListError) {
@@ -112,28 +112,15 @@ class _ChatsHeader extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onBackPressed,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                size: 18,
-                color: Color(0xFF2C2C2C),
-              ),
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 18,
+              color: AppColors.textPrimary,
             ),
+            onPressed: onBackPressed,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 12),
           const Text(

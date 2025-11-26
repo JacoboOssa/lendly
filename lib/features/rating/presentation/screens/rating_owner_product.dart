@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/rating/presentation/bloc/rating_owner_product_bloc.dart';
 
@@ -39,15 +42,11 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
   void _submit() {
     // Final submit from product step
     if (_ownerRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor califica al propietario')),
-      );
+      ToastHelper.showError(context, 'Por favor califica al propietario');
       return;
     }
     if (_productRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor califica el producto')),
-      );
+      ToastHelper.showError(context, 'Por favor califica el producto');
       return;
     }
 
@@ -91,9 +90,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
         if (state is RatingOwnerProductSuccess) {
           Navigator.of(context).pop(true);
         } else if (state is RatingOwnerProductError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ToastHelper.showError(context, state.message);
         }
       },
       child: Scaffold(
@@ -130,7 +127,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
                       child: const Icon(
                         Icons.arrow_back_ios_new,
                         size: 18,
-                        color: Color(0xFF2C2C2C),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -151,7 +148,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
                       value: (_step + 1) / 2,
                       minHeight: 8,
                       backgroundColor: const Color(0xFFECECEC),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     ),
                   ),
                 ),
@@ -180,7 +177,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
                         return ElevatedButton(
                           onPressed: isLoading ? null : (_step == 0 ? _nextStep : _submit),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5B5670),
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -228,7 +225,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(color: Color(0xFF5B5670), shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
               child: Center(child: Text(widget.ownerName.isNotEmpty ? widget.ownerName[0].toUpperCase() : 'U', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))),
             ),
             const SizedBox(width: 12),
@@ -294,7 +291,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
 
   void _nextStep() {
     if (_ownerRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor califica al propietario antes de continuar')));
+      ToastHelper.showError(context, 'Por favor califica al propietario antes de continuar');
       return;
     }
 

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -57,11 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
   void _goToStep2() {
     if (_formKeyStep1.currentState?.validate() ?? false) {
       if (!acceptTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Debes aceptar los términos para continuar'),
-          ),
-        );
+        ToastHelper.showError(context, 'Debes aceptar los términos para continuar');
         return;
       }
 
@@ -133,9 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo seleccionar la imagen')),
-      );
+      ToastHelper.showError(context, 'No se pudo seleccionar la imagen');
     }
   }
 
@@ -147,7 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()),
+            builder: (_) => const Center(child: LoadingSpinner()),
           );
         } else if (state is RegisterError) {
           Navigator.of(context, rootNavigator: true).pop(); // cierra el loading
@@ -202,7 +199,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         child: IconButton(
                           padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 16),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 18,
+                            color: AppColors.textPrimary,
+                          ),
                           onPressed: () {
                             if (_currentStep > 0) {
                               setState(() => _currentStep--);
@@ -226,7 +227,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       minHeight: 10,
                       backgroundColor: Colors.grey.shade200,
                       valueColor: AlwaysStoppedAnimation(
-                        const Color(0xFF98A1BC),
+                        AppColors.primary,
                       ),
                     ),
                   ),
@@ -252,13 +253,13 @@ class _SignupScreenState extends State<SignupScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF98A1BC).withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           _selectedUserType == 'lender' ? 'P' : 'A',
                           style: const TextStyle(
-                            color: Color(0xFF98A1BC),
+                            color: AppColors.primary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -426,7 +427,7 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF98A1BC),
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -516,7 +517,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           child: const Icon(
                             Icons.edit,
                             size: 18,
-                            color: Color(0xFF98A1BC),
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -646,7 +647,7 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF98A1BC),
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -672,7 +673,7 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 50,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF98A1BC)),
+                side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -681,7 +682,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: const Text(
                 'Saltar por ahora',
                 style: TextStyle(
-                  color: Color(0xFF98A1BC),
+                  color: AppColors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

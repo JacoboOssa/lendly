@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
@@ -7,6 +11,9 @@ import 'package:lendly_app/features/offers/domain/usecases/get_sent_rental_reque
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 class OffersSentScreen extends StatelessWidget {
   const OffersSentScreen({super.key});
@@ -30,33 +37,18 @@ class _OffersSentView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2C2C2C)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Mis solicitudes',
-          style: TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
+      appBar: const CustomAppBar(
+        title: 'Mis solicitudes',
       ),
       body: BlocConsumer<OffersSentBloc, OffersSentState>(
         listener: (context, state) {
           if (state is OffersSentError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ToastHelper.showError(context, state.message);
           }
         },
         builder: (context, state) {
           if (state is OffersSentLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: LoadingSpinner());
           }
           if (state is OffersSentError) {
             return Center(
@@ -202,7 +194,7 @@ class _SentOfferCard extends StatelessWidget {
                     offer.owner.name,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF5B5670),
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
                     ),
@@ -233,14 +225,14 @@ class _SentOfferCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFF5B5670)),
+                        const Icon(Icons.location_on, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         const Text(
                           'Punto de recogida:',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -253,14 +245,14 @@ class _SentOfferCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 16, color: Color(0xFF5B5670)),
+                        const Icon(Icons.access_time, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         const Text(
                           'Hora de recogida:',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -287,7 +279,7 @@ class _SentOfferCard extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.chat_bubble_outline),
-                  color: const Color(0xFF5B5670),
+                  color: AppColors.primary,
                 ),
               ],
             ),
@@ -300,7 +292,7 @@ class _SentOfferCard extends StatelessWidget {
   Color _getStatusColor(RentalRequestStatus status) {
     switch (status) {
       case RentalRequestStatus.pending:
-        return const Color(0xFF5B5670);
+        return AppColors.primary;
       case RentalRequestStatus.approved:
         return Colors.green;
       case RentalRequestStatus.rejected:

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/rented/presentation/bloc/rented_products_bloc.dart';
 import 'package:lendly_app/features/rented/presentation/widgets/rented_product_card.dart';
@@ -28,30 +31,17 @@ class _RentedProductsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2C2C2C)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          UserSessionService().isBorrower
-              ? 'Productos alquilados'
-              : 'Productos en alquiler',
-          style: const TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: UserSessionService().isBorrower
+            ? 'Productos alquilados'
+            : 'Productos en alquiler',
+        onBackPressed: () => Navigator.pop(context),
       ),
       body: BlocBuilder<RentedProductsBloc, RentedProductsState>(
         builder: (context, state) {
           if (state is RentedProductsLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-              ),
+              child: LoadingSpinner(),
             );
           }
 

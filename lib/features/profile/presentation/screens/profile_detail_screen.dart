@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/profile/data/repositories/profile_detail_repository_impl.dart';
 import 'package:lendly_app/features/profile/data/source/profile_detail_data_source.dart';
@@ -68,9 +70,7 @@ class _ProfileDetailView extends StatelessWidget {
           builder: (context, state) {
             if (state is ProfileDetailLoading) {
               return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                ),
+                child: LoadingSpinner(),
               );
             }
 
@@ -169,28 +169,15 @@ class _ProfileHeader extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onBackPressed,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                size: 18,
-                color: Color(0xFF2C2C2C),
-              ),
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 18,
+              color: AppColors.textPrimary,
             ),
+            onPressed: onBackPressed,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 12),
           const Text(
@@ -464,15 +451,13 @@ class _RatingSection extends StatelessWidget {
               const SizedBox(height: 16),
               Center(
                 child: isLoadingMore
-                    ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                      )
+                    ? const LoadingSpinner()
                     : TextButton(
                         onPressed: onLoadMore,
                         child: const Text(
                           'Cargar más reseñas',
                           style: TextStyle(
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

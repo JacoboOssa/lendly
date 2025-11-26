@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
 import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
@@ -141,7 +142,7 @@ class RentedProductCard extends StatelessWidget {
         color: const Color(0xFFE0E0E0),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(Icons.photo_camera_outlined, color: Color(0xFF5B5670)),
+      child: const Icon(Icons.photo_camera_outlined, color: AppColors.primary),
     );
   }
 
@@ -177,7 +178,7 @@ class RentedProductCard extends StatelessWidget {
                 productData.otherUser.name,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF5B5670),
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                   decoration: TextDecoration.underline,
                 ),

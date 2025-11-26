@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/domain/model/product.dart';
@@ -43,9 +47,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_returnTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona la hora de devolución')),
-      );
+      ToastHelper.showError(context, 'Selecciona la hora de devolución');
       return;
     }
 
@@ -79,9 +81,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al procesar la devolución: $e')),
-        );
+        ToastHelper.showError(context, 'Error al procesar la devolución: $e');
       }
     }
   }
@@ -90,25 +90,8 @@ class _ReturnScreenState extends State<ReturnScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF1F1F1F),
-            size: 18,
-          ),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: const Text(
-          'Devolucion del producto',
-          style: TextStyle(
-            color: Color(0xFF1F1F1F),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
+      appBar: const CustomAppBar(
+        title: 'Devolución del producto',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -379,7 +362,7 @@ class _ReturnButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onSubmit,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF5B5670),
+          backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

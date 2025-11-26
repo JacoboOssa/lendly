@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:lendly_app/domain/model/payment.dart';
 import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
 import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
@@ -42,12 +46,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _processPayment() async {
     if (!_hasAddress || !_hasPayment) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor completa la dirección y el método de pago'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastHelper.showError(context, 'Por favor completa la dirección y el método de pago');
       return;
     }
 
@@ -60,21 +59,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       
       if (mounted) {
         Navigator.of(context).pop(true); // Retornar true para indicar que se pagó
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pago realizado exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastHelper.showSuccess(context, 'Pago realizado exitosamente');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al procesar el pago: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastHelper.showError(context, 'Error al procesar el pago: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -89,24 +78,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF1F1F1F),
-            size: 18,
-          ),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Text(
-          _hasAddress && _hasPayment ? 'Finalizar compra' : 'Pagar',
-          style: const TextStyle(
-            color: Color(0xFF1F1F1F),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: _hasAddress && _hasPayment ? 'Finalizar compra' : 'Pagar',
+        onBackPressed: () => Navigator.of(context).maybePop(),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -412,7 +386,7 @@ class _CheckoutFooter extends StatelessWidget {
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF5B5670),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(14),
               ),
               alignment: Alignment.center,
@@ -435,7 +409,7 @@ class _CheckoutFooter extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
                     color: onSubmit != null
-                        ? const Color(0xFF5B5670)
+                        ? AppColors.primary
                         : Colors.grey,
                   ),
                   shape: RoundedRectangleBorder(
@@ -445,7 +419,7 @@ class _CheckoutFooter extends StatelessWidget {
                 child: Text(
                   buttonLabel,
                   style: const TextStyle(
-                    color: Color(0xFF5B5670),
+                    color: AppColors.primary,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -602,7 +576,7 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
                     child: ElevatedButton(
                       onPressed: _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B5670),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -790,7 +764,7 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
                     child: ElevatedButton(
                       onPressed: _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B5670),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

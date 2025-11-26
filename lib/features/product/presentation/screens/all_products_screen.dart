@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/skeleton_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/features/product/presentation/bloc/all_products_bloc.dart';
@@ -29,26 +33,13 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F1F1F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Todos los productos',
-          style: TextStyle(
-            color: Color(0xFF1F1F1F),
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      appBar: const CustomAppBar(
+        title: 'Todos los productos',
       ),
       body: BlocBuilder<AllProductsBloc, AllProductsState>(
         builder: (context, state) {
           if (state is AllProductsLoading) {
-            return _buildLoadingSkeleton();
+            return const ProductsSkeletonLoader(itemCount: 10);
           }
 
           if (state is AllProductsError) {
@@ -154,11 +145,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                   Container(
                     color: Colors.black.withOpacity(0.3),
                     child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF5B5670),
-                        ),
-                      ),
+                      child: LoadingSpinner(),
                     ),
                   ),
               ],
@@ -171,39 +158,6 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  Widget _buildLoadingSkeleton() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              children: List.generate(
-                5,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _SkeletonCard(),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              children: List.generate(
-                5,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _SkeletonCard(),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _ProductCard extends StatelessWidget {
@@ -314,7 +268,7 @@ class _ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF5B5670),
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -322,58 +276,6 @@ class _ProductCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SkeletonCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 14,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: 14,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -409,7 +311,7 @@ class _PaginationControls extends StatelessWidget {
         children: [
           // Botón Anterior (solo icono)
           _IconNavigationButton(
-            icon: Icons.arrow_back_ios_new_rounded,
+            icon: Icons.arrow_back_ios_new,
             enabled: currentPage > 0 && !isLoading,
             onTap: () {
               context.read<AllProductsBloc>().add(PreviousPage());
@@ -433,7 +335,7 @@ class _PaginationControls extends StatelessWidget {
 
           // Botón Siguiente (solo icono)
           _IconNavigationButton(
-            icon: Icons.arrow_forward_ios_rounded,
+            icon: Icons.arrow_forward_ios,
             enabled: currentPage < totalPages - 1 && !isLoading,
             onTap: () {
               context.read<AllProductsBloc>().add(NextPage());
@@ -470,7 +372,7 @@ class _IconNavigationButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: enabled
                 ? const LinearGradient(
-                    colors: [Color(0xFF6B5B7C), Color(0xFF5B5670)],
+                    colors: [Color(0xFF6B5B7C), AppColors.primary],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   )
@@ -480,7 +382,7 @@ class _IconNavigationButton extends StatelessWidget {
             boxShadow: enabled
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF5B5670).withOpacity(0.3),
+                      color: AppColors.primary.withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

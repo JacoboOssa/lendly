@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 
 class ManageAvailabilityScreen extends StatefulWidget {
   const ManageAvailabilityScreen({super.key});
@@ -42,20 +45,8 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF2C2C2C), size: 18),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: const Text(
-          'Gestionar disponibilidad',
-          style:
-              TextStyle(color: Color(0xFF2C2C2C), fontWeight: FontWeight.w600),
-        ),
-        centerTitle: false,
+      appBar: const CustomAppBar(
+        title: 'Gestionar disponibilidad',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -132,7 +123,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
             ),
             Switch(
               value: available,
-              activeThumbColor: const Color(0xFF98A1BC),
+              activeThumbColor: AppColors.primary,
               onChanged: (v) =>
                   setState(() => _availability[args.productId] = v),
             ),
@@ -168,7 +159,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
           height: 50,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF98A1BC),
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -193,7 +184,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
           height: 50,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFF98A1BC)),
+              side: const BorderSide(color: AppColors.primary),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -201,7 +192,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
             child: const Text(
               'Cancelar',
               style: TextStyle(
-                  color: Color(0xFF98A1BC),
+                  color: AppColors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600),
             ),
@@ -216,9 +207,7 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
     // Para integración: enviar productId(s) y estado(s) deseado(s) en _availability.
 
     // UX: Mostrar feedback local y volver
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Disponibilidad actualizada')),
-    );
+    ToastHelper.showSuccess(context, 'Disponibilidad actualizada');
     Navigator.of(context).maybePop(_availability);
   }
 }
@@ -283,7 +272,7 @@ class _ProductTile extends StatelessWidget {
             ),
             Switch(
               value: value,
-              activeThumbColor: const Color(0xFF98A1BC),
+              activeThumbColor: AppColors.primary,
               onChanged: onChanged,
             ),
           ],
@@ -302,7 +291,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isAvailable ? const Color(0xFF98A1BC) : Colors.grey.shade300)
+        color: (isAvailable ? AppColors.primary : Colors.grey.shade300)
             .withOpacity(0.15),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -310,7 +299,7 @@ class _StatusChip extends StatelessWidget {
         isAvailable ? 'Disponible' : 'No disponible',
         style: TextStyle(
           color:
-              isAvailable ? const Color(0xFF98A1BC) : const Color(0xFF6D6D6D),
+              isAvailable ? AppColors.primary : const Color(0xFF6D6D6D),
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -333,7 +322,7 @@ class _ProductAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: imageUrl == null
-          ? const Icon(Icons.inventory_2_outlined, color: Color(0xFF98A1BC))
+          ? const Icon(Icons.inventory_2_outlined, color: AppColors.primary)
           : ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(imageUrl!, fit: BoxFit.cover),

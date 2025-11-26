@@ -9,6 +9,10 @@ import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 class OffersReceivedScreen extends StatelessWidget {
   const OffersReceivedScreen({super.key});
@@ -52,9 +56,7 @@ class _OffersViewState extends State<_OffersView> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-                    ),
+                    LoadingSpinner(size: 40),
                     SizedBox(height: 16),
                     Text(
                       'Aprobando solicitud...',
@@ -93,21 +95,8 @@ class _OffersViewState extends State<_OffersView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2C2C2C)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Solicitudes recibidas',
-          style: TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
+      appBar: const CustomAppBar(
+        title: 'Solicitudes recibidas',
       ),
       body: BlocConsumer<OffersReceivedBloc, OffersReceivedState>(
         listener: (context, state) {
@@ -116,28 +105,16 @@ class _OffersViewState extends State<_OffersView> {
           } else if (state is OffersLoaded || state is OffersError || state is OfferActionSuccess) {
             _hideLoadingDialog(context);
             if (state is OffersError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              ToastHelper.showError(context, state.message);
             } else if (state is OfferActionSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              ToastHelper.showSuccess(context, state.message);
             }
           }
         },
         builder: (context, state) {
           if (state is OffersLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5670)),
-              ),
+              child: LoadingSpinner(),
             );
           }
           if (state is OffersError) {
@@ -164,7 +141,7 @@ class _OffersViewState extends State<_OffersView> {
                         context.read<OffersReceivedBloc>().add(LoadOffersEvent());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B5670),
+                        backgroundColor: AppColors.primary,
                       ),
                       child: const Text('Reintentar'),
                     ),
@@ -296,7 +273,7 @@ class _OfferCard extends StatelessWidget {
                     offer.borrower.name,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF5B5670),
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
                     ),
@@ -327,14 +304,14 @@ class _OfferCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFF5B5670)),
+                        const Icon(Icons.location_on, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         const Text(
                           'Punto de recogida:',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -347,14 +324,14 @@ class _OfferCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 16, color: Color(0xFF5B5670)),
+                        const Icon(Icons.access_time, size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         const Text(
                           'Hora de recogida:',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF5B5670),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -381,14 +358,14 @@ class _OfferCard extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.chat_bubble_outline),
-                  color: const Color(0xFF5B5670),
+                  color: AppColors.primary,
                 ),
                 const SizedBox(width: 8),
                 if (offer.request.status == RentalRequestStatus.pending) ...[
                   ElevatedButton(
                     onPressed: () => _showApproveDialog(context, offer),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5670),
+                      backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -424,7 +401,7 @@ class _OfferCard extends StatelessWidget {
   Color _getStatusColor(RentalRequestStatus status) {
     switch (status) {
       case RentalRequestStatus.pending:
-        return const Color(0xFF5B5670);
+        return AppColors.primary;
       case RentalRequestStatus.approved:
         return Colors.green;
       case RentalRequestStatus.rejected:
@@ -538,7 +515,7 @@ class _OfferCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.access_time, color: Color(0xFF5B5670)),
+                            const Icon(Icons.access_time, color: AppColors.primary),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -591,7 +568,7 @@ class _OfferCard extends StatelessWidget {
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B5670),
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

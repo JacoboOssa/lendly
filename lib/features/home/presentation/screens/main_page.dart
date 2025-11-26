@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 import 'package:lendly_app/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/get_current_user_bloc.dart';
@@ -84,7 +85,7 @@ class _MainPageState extends State<MainPage> {
                         children: [
                           Icon(
                             Icons.add_circle,
-                            color: const Color(0xFF98A1BC),
+                            color: AppColors.primary,
                             size: 32,
                           ),
                           const SizedBox(height: 2),
@@ -92,7 +93,7 @@ class _MainPageState extends State<MainPage> {
                             'Publicar',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF98A1BC),
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -126,7 +127,7 @@ class _MainPageState extends State<MainPage> {
             Icon(
               icon,
               color: isSelected
-                  ? const Color(0xFF5B5670)
+                  ? AppColors.primary
                   : const Color(0xFFBDBDBD),
               size: 24,
             ),
@@ -136,7 +137,7 @@ class _MainPageState extends State<MainPage> {
               style: TextStyle(
                 fontSize: 11,
                 color: isSelected
-                    ? const Color(0xFF5B5670)
+                    ? AppColors.primary
                     : const Color(0xFFBDBDBD),
               ),
             ),

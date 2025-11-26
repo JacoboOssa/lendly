@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 class UserTypeSelectionScreen extends StatefulWidget {
   final Function(String) onUserTypeSelected;
@@ -74,7 +75,7 @@ class _UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: selectedUserType != null
-                  ? const Color(0xFF98A1BC)
+                  ? AppColors.primary
                   : Colors.grey.shade300,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -111,7 +112,7 @@ class _UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF98A1BC) : Colors.grey.shade200,
+            color: isSelected ? AppColors.primary : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -139,7 +140,7 @@ class _UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
                       child: Icon(
                         icon,
                         size: 16,
-                        color: const Color(0xFF98A1BC),
+                        color: AppColors.primary,
                       ),
                     ),
                   )
@@ -180,12 +181,12 @@ class _UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF98A1BC)
+                      ? AppColors.primary
                       : Colors.grey.shade400,
                   width: 2,
                 ),
                 color: isSelected
-                    ? const Color(0xFF98A1BC)
+                    ? AppColors.primary
                     : Colors.transparent,
               ),
               child: isSelected

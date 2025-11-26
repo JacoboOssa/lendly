@@ -98,7 +98,7 @@
 //                     children: [
 //                       Icon(
 //                         Icons.add_circle,
-//                         color: const Color(0xFF98A1BC),
+//                         color: const AppColors.primary,
 //                         size: 32,
 //                       ),
 //                       const SizedBox(height: 2),
@@ -106,7 +106,7 @@
 //                         'Publicar',
 //                         style: TextStyle(
 //                           fontSize: 11,
-//                           color: Color(0xFF98A1BC),
+//                           color: AppColors.primary,
 //                         ),
 //                       ),
 //                     ],
@@ -142,7 +142,7 @@
 //             Icon(
 //               icon,
 //               color: isSelected
-//                   ? const Color(0xFF5B5670)
+//                   ? const AppColors.primary
 //                   : const Color(0xFFBDBDBD),
 //               size: 24,
 //             ),
@@ -152,7 +152,7 @@
 //               style: TextStyle(
 //                 fontSize: 11,
 //                 color: isSelected
-//                     ? const Color(0xFF5B5670)
+//                     ? const AppColors.primary
 //                     : const Color(0xFFBDBDBD),
 //               ),
 //             ),

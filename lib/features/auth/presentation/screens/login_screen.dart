@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:lendly_app/core/services/user_session_service.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -148,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         );
                                       },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF98A1BC),
+                                  backgroundColor: AppColors.primary,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
