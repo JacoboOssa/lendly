@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:lendly_app/core/utils/app_colors.dart';
-import 'package:lendly_app/core/utils/toast_helper.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
-import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:lendly_app/domain/model/rental_request.dart';
-import 'package:lendly_app/features/offers/presentation/bloc/offers_sent_bloc.dart';
-import 'package:lendly_app/features/offers/domain/usecases/get_sent_rental_requests_usecase.dart';
-import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
-import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
-import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
-import 'package:lendly_app/core/utils/toast_helper.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/features/offers/presentation/bloc/offers_sent_bloc.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 
 class OffersSentScreen extends StatelessWidget {
   const OffersSentScreen({super.key});
@@ -21,10 +16,7 @@ class OffersSentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OffersSentBloc(
-        getUseCase: GetSentRentalRequestsUseCase(),
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase(),
-      )..add(LoadSentOffersEvent()),
+      create: (_) => OffersSentBloc()..add(LoadSentOffersEvent()),
       child: const _OffersSentView(),
     );
   }

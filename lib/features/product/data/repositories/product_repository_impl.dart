@@ -18,4 +18,9 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<AppUser?> getOwnerInfo(String ownerId) {
     return dataSource.getOwnerInfo(ownerId);
   }
+
+  @override
+  Future<Product> getProductById(String productId) {
+    return dataSource.getProductById(productId);
+  }
 }

@@ -57,7 +57,6 @@ class RentalRequestDataSourceImpl implements RentalRequestDataSource {
 
   @override
   Future<List<RentalRequest>> getRentalRequestsByOwner(String ownerId) async {
-    // Primero obtener los IDs de productos del owner (incluyendo eliminados para historiales)
     final productsResponse = await Supabase.instance.client
         .from('items')
         .select('id')
@@ -71,22 +70,18 @@ class RentalRequestDataSourceImpl implements RentalRequestDataSource {
         .map((p) => p['id'] as String)
         .toList();
 
-    // Si no hay productos, retornar lista vacía
     if (productIds.isEmpty) {
       return [];
     }
 
-    // Construir query con OR para múltiples product_ids
-    // Usar el método 'or' con múltiples condiciones eq
+
     var query = Supabase.instance.client
         .from('rental_request')
         .select();
 
-    // Construir la condición OR manualmente
     if (productIds.length == 1) {
       query = query.eq('product_id', productIds[0]);
     } else {
-      // Para múltiples IDs, usar or con múltiples condiciones
       final orConditions = productIds
           .map((id) => 'product_id.eq.$id')
           .join(',');

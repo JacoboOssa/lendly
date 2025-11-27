@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lendly_app/features/rental_history/domain/usecases/get_rental_history_usecase.dart';
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_current_user_usecase.dart';
+import 'package:lendly_app/features/rental_history/domain/usecases/get_rental_history_usecase.dart';
+
+export 'package:lendly_app/features/rental_history/domain/usecases/get_rental_history_usecase.dart' show RentalHistoryData;
 
 // Events
 abstract class RentalHistoryEvent {}
@@ -46,20 +48,16 @@ class RentalHistoryError extends RentalHistoryState {
 
 // Bloc
 class RentalHistoryBloc extends Bloc<RentalHistoryEvent, RentalHistoryState> {
-  final GetRentalHistoryUseCase getRentalHistoryUseCase;
-  final GetCurrentUserUsecase getCurrentUserUsecase;
-  final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
+  late final GetRentalHistoryUseCase getRentalHistoryUseCase;
+  late final GetCurrentUserUsecase getCurrentUserUsecase;
+  late final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
 
-  RentalHistoryBloc({
-    GetRentalHistoryUseCase? getRentalHistoryUseCase,
-    GetCurrentUserUsecase? getCurrentUserUsecase,
-    GetCurrentUserIdUseCase? getCurrentUserIdUseCase,
-  })  : getRentalHistoryUseCase =
-            getRentalHistoryUseCase ?? GetRentalHistoryUseCase(),
-        getCurrentUserUsecase = getCurrentUserUsecase ?? GetCurrentUserUsecase(),
-        getCurrentUserIdUseCase =
-            getCurrentUserIdUseCase ?? GetCurrentUserIdUseCase(),
-        super(RentalHistoryInitial()) {
+  RentalHistoryBloc() : super(RentalHistoryInitial()) {
+    // El BLoC solo instancia use cases, los use cases instancian los repositories
+    getRentalHistoryUseCase = GetRentalHistoryUseCase();
+    getCurrentUserUsecase = GetCurrentUserUsecase();
+    getCurrentUserIdUseCase = GetCurrentUserIdUseCase();
+    
     on<LoadRentalHistoryEvent>(_onLoadRentalHistory);
   }
 

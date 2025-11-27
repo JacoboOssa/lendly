@@ -1,31 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
-import 'package:lendly_app/domain/model/product.dart';
-import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
-import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_usecase.dart';
-import 'package:lendly_app/features/offers/domain/usecases/approve_rental_request_usecase.dart';
-import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request_usecase.dart';
+import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
+import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
+import 'package:lendly_app/features/offers/data/repositories/rental_repository_impl.dart';
+import 'package:lendly_app/features/offers/data/repositories/rental_request_repository_impl.dart';
 import 'package:lendly_app/features/offers/data/source/rental_data_source.dart';
-import 'package:lendly_app/features/product/data/source/product_data_source.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:lendly_app/features/offers/data/source/rental_request_data_source.dart';
+import 'package:lendly_app/features/offers/domain/usecases/approve_rental_request_usecase.dart';
+import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_usecase.dart';
+import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_view_usecase.dart';
+import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request_usecase.dart';
+import 'package:lendly_app/features/product/data/repositories/product_repository_impl.dart';
 
-import 'package:lendly_app/domain/model/rental.dart';
-
-// Modelo de vista que combina RentalRequest con Product, AppUser y Rental
-class RentalRequestView {
-  final RentalRequest request;
-  final Product product;
-  final AppUser borrower;
-  final Rental? rental; // Información de recogida si está aprobada
-
-  RentalRequestView({
-    required this.request,
-    required this.product,
-    required this.borrower,
-    this.rental,
-  });
-}
+export 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_view_usecase.dart' show RentalRequestView;
 
 // EVENTS
 abstract class OffersReceivedEvent {}
@@ -74,19 +62,47 @@ class OfferActionSuccess extends OffersReceivedState {
 
 class OffersReceivedBloc
     extends Bloc<OffersReceivedEvent, OffersReceivedState> {
-  final GetReceivedRentalRequestsUseCase getUseCase;
-  final ApproveRentalRequestUseCase approveUseCase;
-  final RejectRentalRequestUseCase rejectUseCase;
-  final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
-  final ProductDataSource productDataSource = ProductDataSourceImpl();
-  final RentalDataSource rentalDataSource = RentalDataSourceImpl();
+  late final GetReceivedRentalRequestsViewUseCase getUseCase;
+  late final ApproveRentalRequestUseCase approveUseCase;
+  late final RejectRentalRequestUseCase rejectUseCase;
+  late final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
 
-  OffersReceivedBloc({
-    required this.getUseCase,
-    required this.approveUseCase,
-    required this.rejectUseCase,
-    required this.getCurrentUserIdUseCase,
-  }) : super(OffersInitial()) {
+  OffersReceivedBloc() : super(OffersInitial()) {
+    // Instanciar repositories
+    final rentalRequestDataSource = RentalRequestDataSourceImpl();
+    final rentalDataSource = RentalDataSourceImpl();
+    final paymentDataSource = PaymentDataSourceImpl();
+    
+    final rentalRepository = RentalRepositoryImpl(rentalDataSource);
+    final paymentRepository = PaymentRepositoryImpl(paymentDataSource);
+    final productRepository = ProductRepositoryImpl();
+    final rentalRequestRepository = RentalRequestRepositoryImpl(
+      rentalRequestDataSource,
+      rentalRepository: rentalRepository,
+      paymentRepository: paymentRepository,
+      productRepository: productRepository,
+    );
+
+    // Instanciar use cases
+    final getReceivedRentalRequestsUseCase = GetReceivedRentalRequestsUseCase(
+      repository: rentalRequestRepository,
+    );
+    getUseCase = GetReceivedRentalRequestsViewUseCase(
+      getRentalRequestsUseCase: getReceivedRentalRequestsUseCase,
+      productRepository: productRepository,
+      rentalRepository: rentalRepository,
+    );
+    approveUseCase = ApproveRentalRequestUseCase(
+      rentalRequestRepository: rentalRequestRepository,
+      rentalRepository: rentalRepository,
+      paymentRepository: paymentRepository,
+      productRepository: productRepository,
+    );
+    rejectUseCase = RejectRentalRequestUseCase(
+      repository: rentalRequestRepository,
+    );
+    getCurrentUserIdUseCase = GetCurrentUserIdUseCase();
+
     on<LoadOffersEvent>(_onLoadOffers);
     on<ApproveOfferEvent>(_onApprove);
     on<RejectOfferEvent>(_onReject);
@@ -104,42 +120,7 @@ class OffersReceivedBloc
         return;
       }
 
-      final requests = await getUseCase.execute(userId);
-      
-      // Obtener información del producto y del usuario para cada solicitud
-      final List<RentalRequestView> views = [];
-      for (final request in requests) {
-        try {
-          // Obtener producto
-          final productResponse = await Supabase.instance.client
-              .from('items')
-              .select()
-              .eq('id', request.productId)
-              .single();
-          final product = Product.fromJson(productResponse);
-
-          // Obtener usuario que solicita
-          final borrower = await productDataSource.getOwnerInfo(request.borrowerUserId);
-          if (borrower == null) continue;
-
-          // Obtener rental si la solicitud está aprobada
-          Rental? rental;
-          if (request.status == RentalRequestStatus.approved && request.id != null) {
-            rental = await rentalDataSource.getRentalByRequestId(request.id!);
-          }
-
-          views.add(RentalRequestView(
-            request: request,
-            product: product,
-            borrower: borrower,
-            rental: rental,
-          ));
-        } catch (e) {
-          // Si hay error obteniendo datos, continuar con la siguiente solicitud
-          continue;
-        }
-      }
-
+      final views = await getUseCase.execute(userId);
       emit(OffersLoaded(views));
     } catch (e) {
       emit(OffersError('Error al cargar las solicitudes: ${e.toString()}'));
@@ -177,46 +158,7 @@ class OffersReceivedBloc
         return;
       }
 
-      final requests = await getUseCase.execute(userId);
-      
-      // Obtener información del producto y del usuario para cada solicitud
-      final List<RentalRequestView> views = [];
-      for (final request in requests) {
-        try {
-          // Obtener producto
-          final productResponse = await Supabase.instance.client
-              .from('items')
-              .select()
-              .eq('id', request.productId)
-              .single();
-          final product = Product.fromJson(productResponse);
-
-          // Obtener usuario que solicita
-          final borrower = await productDataSource.getOwnerInfo(request.borrowerUserId);
-          if (borrower == null) continue;
-
-          // Obtener rental si la solicitud está aprobada
-          Rental? rental;
-          if (request.status == RentalRequestStatus.approved && request.id != null) {
-            try {
-              rental = await rentalDataSource.getRentalByRequestId(request.id!);
-            } catch (e) {
-              // Si no se encuentra el rental, continuar sin él
-              rental = null;
-            }
-          }
-
-          views.add(RentalRequestView(
-            request: request,
-            product: product,
-            borrower: borrower,
-            rental: rental,
-          ));
-        } catch (e) {
-          // Si hay error obteniendo datos, continuar con la siguiente solicitud
-          continue;
-        }
-      }
+      final views = await getUseCase.execute(userId);
 
       // Emitir estado de éxito con las ofertas actualizadas
       emit(OfferActionSuccess(views, 'Solicitud aprobada exitosamente'));

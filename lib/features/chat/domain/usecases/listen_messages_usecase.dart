@@ -6,7 +6,7 @@ import 'package:lendly_app/features/chat/domain/repositories/message_repository.
 class ListenMessagesUseCase {
   final MessageRepository repository;
 
-  ListenMessagesUseCase(this.repository);
+  ListenMessagesUseCase() : repository = MessageRepositoryImpl(MessageDataSourceImpl());
 
   Stream<Message> execute(String conversationId) {
     return repository.listenMessages(conversationId);

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:lendly_app/core/utils/app_colors.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
-import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lendly_app/core/services/user_session_service.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/features/checkout/presentation/bloc/checkout_bloc.dart';
+import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 import 'package:lendly_app/features/rented/presentation/bloc/rented_products_bloc.dart';
 import 'package:lendly_app/features/rented/presentation/widgets/rented_product_card.dart';
-import 'package:lendly_app/features/rented/domain/usecases/get_rented_products_usecase.dart';
-import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
-import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
 import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
-import 'package:lendly_app/domain/model/rental.dart';
-import 'package:lendly_app/core/services/user_session_service.dart';
 
 class RentedProductsScreen extends StatelessWidget {
   const RentedProductsScreen({super.key});
@@ -134,7 +132,10 @@ class _RentedProductsView extends StatelessWidget {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => CheckoutScreen(payment: productData.payment!),
+                              builder: (_) => BlocProvider(
+                                create: (_) => CheckoutBloc(),
+                                child: CheckoutScreen(payment: productData.payment!),
+                              ),
                             ),
                           );
                           // Si el pago fue exitoso, recargar la lista

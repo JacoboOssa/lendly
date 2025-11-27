@@ -39,10 +39,14 @@ class RentalRequestError extends RentalRequestState {
 
 // BLOC
 class RentalRequestBloc extends Bloc<RentalRequestEvent, RentalRequestState> {
-  final CreateRentalRequestUseCase createRentalRequestUseCase = CreateRentalRequestUseCase();
-  final GetCurrentUserIdUseCase getCurrentUserIdUseCase = GetCurrentUserIdUseCase();
+  late final CreateRentalRequestUseCase createRentalRequestUseCase;
+  late final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
 
   RentalRequestBloc() : super(RentalRequestInitial()) {
+    // El BLoC solo instancia use cases, los use cases instancian los repositories
+    createRentalRequestUseCase = CreateRentalRequestUseCase();
+    getCurrentUserIdUseCase = GetCurrentUserIdUseCase();
+    
     on<CreateRentalRequest>(_onCreateRentalRequest);
   }
 

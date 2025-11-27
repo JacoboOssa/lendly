@@ -1,12 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
-import 'package:lendly_app/domain/model/message.dart';
 import 'package:lendly_app/domain/model/conversation.dart';
-import 'package:lendly_app/features/chat/data/repositories/conversation_repository_impl.dart';
-import 'package:lendly_app/features/chat/data/repositories/message_repository_impl.dart';
-import 'package:lendly_app/features/chat/data/source/conversation_data_source.dart';
-import 'package:lendly_app/features/chat/data/source/message_data_source.dart';
+import 'package:lendly_app/domain/model/message.dart';
 import 'package:lendly_app/features/chat/domain/usecases/find_or_create_conversation_usecase.dart';
 import 'package:lendly_app/features/chat/domain/usecases/get_messages_usecase.dart';
 import 'package:lendly_app/features/chat/domain/usecases/listen_messages_usecase.dart';
@@ -85,21 +81,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ListenMessagesUseCase? listenMessagesUseCase,
   })  : getCurrentUserUsecase = getCurrentUserUsecase ?? GetCurrentUserUsecase(),
         findOrCreateConversationUseCase = findOrCreateConversationUseCase ??
-            FindOrCreateConversationUseCase(
-              ConversationRepositoryImpl(ConversationDataSourceImpl()),
-            ),
-        getMessagesUseCase = getMessagesUseCase ??
-            GetMessagesUseCase(
-              MessageRepositoryImpl(MessageDataSourceImpl()),
-            ),
-        sendMessageUseCase = sendMessageUseCase ??
-            SendMessageUseCase(
-              MessageRepositoryImpl(MessageDataSourceImpl()),
-            ),
-        listenMessagesUseCase = listenMessagesUseCase ??
-            ListenMessagesUseCase(
-              MessageRepositoryImpl(MessageDataSourceImpl()),
-            ),
+            FindOrCreateConversationUseCase(),
+        getMessagesUseCase = getMessagesUseCase ?? GetMessagesUseCase(),
+        sendMessageUseCase = sendMessageUseCase ?? SendMessageUseCase(),
+        listenMessagesUseCase = listenMessagesUseCase ?? ListenMessagesUseCase(),
         super(ChatInitialState()) {
     on<InitializeChatEvent>(_onInitializeChat);
     on<SendMessageEvent>(_onSendMessage);

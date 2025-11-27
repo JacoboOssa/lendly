@@ -26,7 +26,6 @@ class LoadingSpinner extends StatelessWidget {
   }
 }
 
-/// Widget para mostrar un diálogo de carga con spinner
 class LoadingDialog extends StatelessWidget {
   final String? message;
 

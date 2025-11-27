@@ -10,5 +10,8 @@ abstract class RentalRequestRepository {
     String requestId,
     RentalRequestStatus status,
   );
+  
+  /// Obtiene una solicitud por su ID
+  Future<RentalRequest> getRentalRequest(String requestId);
 }
 

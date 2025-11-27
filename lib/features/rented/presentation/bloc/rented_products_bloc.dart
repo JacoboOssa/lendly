@@ -46,18 +46,16 @@ class RentedProductsError extends RentedProductsState {
 
 // Bloc
 class RentedProductsBloc extends Bloc<RentedProductsEvent, RentedProductsState> {
-  final GetRentedProductsUseCase getRentedProductsUseCase;
-  final GetCurrentUserUsecase getCurrentUserUsecase;
-  final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
+  late final GetRentedProductsUseCase getRentedProductsUseCase;
+  late final GetCurrentUserUsecase getCurrentUserUsecase;
+  late final GetCurrentUserIdUseCase getCurrentUserIdUseCase;
 
-  RentedProductsBloc({
-    GetRentedProductsUseCase? getRentedProductsUseCase,
-    GetCurrentUserUsecase? getCurrentUserUsecase,
-    GetCurrentUserIdUseCase? getCurrentUserIdUseCase,
-  })  :         getRentedProductsUseCase = getRentedProductsUseCase ?? GetRentedProductsUseCase(),
-        getCurrentUserUsecase = getCurrentUserUsecase ?? GetCurrentUserUsecase(),
-        getCurrentUserIdUseCase = getCurrentUserIdUseCase ?? GetCurrentUserIdUseCase(),
-        super(RentedProductsInitial()) {
+  RentedProductsBloc() : super(RentedProductsInitial()) {
+    // El BLoC solo instancia use cases, los use cases instancian los repositories
+    getRentedProductsUseCase = GetRentedProductsUseCase();
+    getCurrentUserUsecase = GetCurrentUserUsecase();
+    getCurrentUserIdUseCase = GetCurrentUserIdUseCase();
+    
     on<LoadRentedProductsEvent>(_onLoadRentedProducts);
   }
 

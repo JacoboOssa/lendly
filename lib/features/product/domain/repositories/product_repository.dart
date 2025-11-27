@@ -7,4 +7,5 @@ abstract class ProductRepository {
     required int pageSize,
   });
   Future<AppUser?> getOwnerInfo(String ownerId);
+  Future<Product> getProductById(String productId);
 }

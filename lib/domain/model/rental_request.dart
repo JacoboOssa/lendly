@@ -32,8 +32,8 @@ class RentalRequest {
       if (id != null) 'id': id,
       'product_id': productId,
       'borrower_user_id': borrowerUserId,
-      'start_date': startDate.toIso8601String().split('T')[0], // Solo la fecha (YYYY-MM-DD)
-      'end_date': endDate.toIso8601String().split('T')[0], // Solo la fecha (YYYY-MM-DD)
+      'start_date': startDate.toIso8601String().split('T')[0],
+      'end_date': endDate.toIso8601String().split('T')[0],
       'status': statusToDbString(status),
       if (createdAt != null) 'created_at': createdAt.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt.toIso8601String(),

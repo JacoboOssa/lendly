@@ -1,46 +1,41 @@
-import 'package:lendly_app/domain/model/rental.dart';
-import 'package:lendly_app/domain/model/rental_request.dart';
-import 'package:lendly_app/domain/model/product.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/domain/model/payment.dart';
-import 'package:lendly_app/features/offers/data/repositories/rental_repository_impl.dart';
-import 'package:lendly_app/features/offers/data/source/rental_data_source.dart';
-import 'package:lendly_app/features/offers/domain/repositories/rental_repository.dart';
-import 'package:lendly_app/features/offers/data/repositories/rental_request_repository_impl.dart';
-import 'package:lendly_app/features/offers/data/source/rental_request_data_source.dart';
-import 'package:lendly_app/features/offers/domain/repositories/rental_request_repository.dart';
-import 'package:lendly_app/features/product/data/source/product_data_source.dart';
+import 'package:lendly_app/domain/model/product.dart';
+import 'package:lendly_app/domain/model/rating.dart';
+import 'package:lendly_app/domain/model/rental.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
 import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
 import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
 import 'package:lendly_app/features/checkout/domain/repositories/payment_repository.dart';
+import 'package:lendly_app/features/offers/data/repositories/rental_repository_impl.dart';
+import 'package:lendly_app/features/offers/data/repositories/rental_request_repository_impl.dart';
+import 'package:lendly_app/features/offers/data/source/rental_data_source.dart';
+import 'package:lendly_app/features/offers/data/source/rental_request_data_source.dart';
+import 'package:lendly_app/features/offers/domain/repositories/rental_repository.dart';
+import 'package:lendly_app/features/offers/domain/repositories/rental_request_repository.dart';
+import 'package:lendly_app/features/product/data/repositories/product_repository_impl.dart';
+import 'package:lendly_app/features/product/domain/repositories/product_repository.dart';
 import 'package:lendly_app/features/rating/data/repositories/rating_repository_impl.dart';
-import 'package:lendly_app/features/rating/data/source/rating_data_source.dart';
 import 'package:lendly_app/features/rating/domain/repositories/rating_repository.dart';
-import 'package:lendly_app/domain/model/rating.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GetRentalHistoryUseCase {
   final RentalRepository rentalRepository;
   final RentalRequestRepository rentalRequestRepository;
-  final ProductDataSource productDataSource;
+  final ProductRepository productRepository;
   final PaymentRepository paymentRepository;
   final RatingRepository ratingRepository;
 
-  GetRentalHistoryUseCase({
-    RentalRepository? rentalRepository,
-    RentalRequestRepository? rentalRequestRepository,
-    ProductDataSource? productDataSource,
-    PaymentRepository? paymentRepository,
-    RatingRepository? ratingRepository,
-  })  : rentalRepository = rentalRepository ??
-            RentalRepositoryImpl(RentalDataSourceImpl()),
-        rentalRequestRepository = rentalRequestRepository ??
-            RentalRequestRepositoryImpl(RentalRequestDataSourceImpl()),
-        productDataSource = productDataSource ?? ProductDataSourceImpl(),
-        paymentRepository = paymentRepository ??
-            PaymentRepositoryImpl(PaymentDataSourceImpl()),
-        ratingRepository = ratingRepository ??
-            RatingRepositoryImpl(RatingDataSourceImpl());
+  GetRentalHistoryUseCase()
+      : rentalRepository = RentalRepositoryImpl(RentalDataSourceImpl()),
+        paymentRepository = PaymentRepositoryImpl(PaymentDataSourceImpl()),
+        productRepository = ProductRepositoryImpl(),
+        ratingRepository = RatingRepositoryImpl(),
+        rentalRequestRepository = RentalRequestRepositoryImpl(
+          RentalRequestDataSourceImpl(),
+          rentalRepository: RentalRepositoryImpl(RentalDataSourceImpl()),
+          paymentRepository: PaymentRepositoryImpl(PaymentDataSourceImpl()),
+          productRepository: ProductRepositoryImpl(),
+        );
 
   // Para borrower: obtener todos sus rentals (activos y completados)
   Future<List<RentalHistoryData>> executeForBorrower(String borrowerId) async {
@@ -70,18 +65,12 @@ class GetRentalHistoryUseCase {
       if (rentalRequest == null) continue;
 
       // Obtener producto
-      final productResponse = await Supabase.instance.client
-          .from('items')
-          .select()
-          .eq('id', rental.productId)
-          .maybeSingle();
-      if (productResponse == null) continue;
-      final product = Product.fromJson(productResponse);
+      final product = await productRepository.getProductById(rental.productId);
 
       // Para borrower: obtener el dueño (owner)
       // Para lender: obtener el borrower
       final otherUserId = isBorrower ? product.ownerId : rental.borrowerUserId;
-      final otherUser = await productDataSource.getOwnerInfo(otherUserId);
+      final otherUser = await productRepository.getOwnerInfo(otherUserId);
       if (otherUser == null) continue;
 
       // Obtener payment si existe

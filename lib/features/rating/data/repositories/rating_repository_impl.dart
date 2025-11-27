@@ -5,7 +5,7 @@ import 'package:lendly_app/features/rating/domain/repositories/rating_repository
 class RatingRepositoryImpl implements RatingRepository {
   final RatingDataSource dataSource;
 
-  RatingRepositoryImpl(this.dataSource);
+  RatingRepositoryImpl() : dataSource = RatingDataSourceImpl();
 
   @override
   Future<Rating> createRating(Rating rating) {

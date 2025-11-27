@@ -29,12 +29,10 @@ class Conversation {
     );
   }
 
-  // Método para verificar si un usuario está en esta conversación
   bool containsUser(String userId) {
     return profile1Id == userId || profile2Id == userId;
   }
 
-  // Método para obtener el ID del otro usuario
   String getOtherUserId(String currentUserId) {
     return profile1Id == currentUserId ? profile2Id : profile1Id;
   }

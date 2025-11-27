@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Skeleton loader para carga inicial de listas
 class SkeletonLoader extends StatelessWidget {
   final double width;
   final double height;
@@ -50,7 +49,6 @@ class SkeletonCard extends StatelessWidget {
   }
 }
 
-/// Skeleton loader para lista de productos (grid)
 class ProductsSkeletonLoader extends StatelessWidget {
   final int itemCount;
   final bool isHorizontal;
@@ -111,7 +109,6 @@ class ProductsSkeletonLoader extends StatelessWidget {
   }
 }
 
-/// Skeleton loader para lista vertical de productos (manage products)
 class ProductsListSkeletonLoader extends StatelessWidget {
   final int itemCount;
 
@@ -217,7 +214,6 @@ class ProductsListSkeletonLoader extends StatelessWidget {
   }
 }
 
-/// Skeleton loader para página completa (home screen)
 class FullPageSkeletonLoader extends StatelessWidget {
   const FullPageSkeletonLoader({super.key});
 

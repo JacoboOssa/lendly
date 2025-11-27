@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
 import 'package:lendly_app/core/utils/toast_helper.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:lendly_app/domain/model/payment.dart';
-import 'package:lendly_app/features/checkout/data/repositories/payment_repository_impl.dart';
-import 'package:lendly_app/features/checkout/data/source/payment_data_source.dart';
-import 'package:lendly_app/features/checkout/domain/repositories/payment_repository.dart';
+import 'package:lendly_app/features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'package:intl/intl.dart';
 
-/// Pantalla de Checkout con datos reales del payment.
-/// Permite capturar dirección de envío y método de pago antes de finalizar.
+
 class CheckoutScreen extends StatefulWidget {
   final Payment payment;
 
@@ -28,8 +25,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _hasPayment = false;
   String _savedAddress = '';
   String _savedCardLast4 = '';
-  bool _isProcessing = false;
-  final PaymentRepository _paymentRepository = PaymentRepositoryImpl(PaymentDataSourceImpl());
 
   String _formatCurrency(double amount) {
     final formatter = NumberFormat.currency(
@@ -41,100 +36,94 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   double get _subtotal => widget.payment.totalAmount;
-  double get _tax => 0.0; // Impuesto (puede ser calculado si es necesario)
+  double get _tax => 0.0;
   double get _total => _subtotal + _tax;
 
-  Future<void> _processPayment() async {
+  void _processPayment() {
     if (!_hasAddress || !_hasPayment) {
       ToastHelper.showError(context, 'Por favor completa la dirección y el método de pago');
       return;
     }
 
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      await _paymentRepository.updatePaymentStatus(widget.payment.id!, true);
-      
-      if (mounted) {
-        Navigator.of(context).pop(true); // Retornar true para indicar que se pagó
-        ToastHelper.showSuccess(context, 'Pago realizado exitosamente');
-      }
-    } catch (e) {
-      if (mounted) {
-        ToastHelper.showError(context, 'Error al procesar el pago: ${e.toString()}');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
-    }
+    context.read<CheckoutBloc>().add(ProcessPaymentEvent(widget.payment.id!));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: _hasAddress && _hasPayment ? 'Finalizar compra' : 'Pagar',
-        onBackPressed: () => Navigator.of(context).maybePop(),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _CheckoutCard(
-                      label: 'Dirección de envío',
-                      subtitle: _hasAddress
-                          ? _savedAddress
-                          : 'Añadir Dirección de envío',
-                      filled: _hasAddress,
-                      onTap: () => _showAddressSheet(),
-                    ),
-                    const SizedBox(height: 16),
-                    _CheckoutCard(
-                      label: 'Método de pago',
-                      subtitle: _hasPayment
-                          ? '**** $_savedCardLast4'
-                          : 'Añadir Método de pago',
-                      filled: _hasPayment,
-                      trailing: _hasPayment
-                          ? const _CardBrandBadge(
-                              brandAssetColor: Color(0xFFFFAF02),
-                              brandSecondaryColor: Color(0xFFEC1C24),
-                            )
-                          : null,
-                      onTap: () => _showPaymentSheet(),
-                    ),
-                    const SizedBox(height: 32),
-                    _SummarySection(
-                      subtotal: _subtotal,
-                      tax: _tax,
-                      total: _total,
-                      formatCurrency: _formatCurrency,
-                    ),
-                  ],
+    return BlocListener<CheckoutBloc, CheckoutState>(
+      listener: (context, state) {
+        if (state is CheckoutSuccess) {
+          Navigator.of(context).pop(true);
+          ToastHelper.showSuccess(context, 'Pago realizado exitosamente');
+        } else if (state is CheckoutError) {
+          ToastHelper.showError(context, 'Error al procesar el pago: ${state.message}');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: CustomAppBar(
+          title: _hasAddress && _hasPayment ? 'Finalizar compra' : 'Pagar',
+          onBackPressed: () => Navigator.of(context).maybePop(),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _CheckoutCard(
+                        label: 'Dirección de envío',
+                        subtitle: _hasAddress
+                            ? _savedAddress
+                            : 'Añadir Dirección de envío',
+                        filled: _hasAddress,
+                        onTap: () => _showAddressSheet(),
+                      ),
+                      const SizedBox(height: 16),
+                      _CheckoutCard(
+                        label: 'Método de pago',
+                        subtitle: _hasPayment
+                            ? '**** $_savedCardLast4'
+                            : 'Añadir Método de pago',
+                        filled: _hasPayment,
+                        trailing: _hasPayment
+                            ? const _CardBrandBadge(
+                                brandAssetColor: Color(0xFFFFAF02),
+                                brandSecondaryColor: Color(0xFFEC1C24),
+                              )
+                            : null,
+                        onTap: () => _showPaymentSheet(),
+                      ),
+                      const SizedBox(height: 32),
+                      _SummarySection(
+                        subtotal: _subtotal,
+                        tax: _tax,
+                        total: _total,
+                        formatCurrency: _formatCurrency,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _CheckoutFooter(
-              totalLabel: _formatCurrency(_total),
-              buttonLabel: _isProcessing ? 'Procesando...' : 'Realizar el pago',
-              onSubmit: _isProcessing ? null : _processPayment,
-            ),
-          ],
+              BlocBuilder<CheckoutBloc, CheckoutState>(
+                builder: (context, state) {
+                  final isLoading = state is CheckoutLoading;
+                  return _CheckoutFooter(
+                    totalLabel: _formatCurrency(_total),
+                    buttonLabel: isLoading ? 'Procesando...' : 'Realizar el pago',
+                    onSubmit: isLoading ? null : _processPayment,
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

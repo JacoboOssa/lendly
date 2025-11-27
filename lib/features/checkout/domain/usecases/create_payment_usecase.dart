@@ -19,13 +19,10 @@ class CreatePaymentUseCase {
     required RentalRequest rentalRequest,
     required Product product,
   }) async {
-    // Calcular número de días desde start_date hasta end_date (inclusive)
     final numberOfDays = rentalRequest.endDate.difference(rentalRequest.startDate).inDays + 1;
     
-    // Calcular precio diario (convertir de cents a pesos)
     final dailyPrice = product.pricePerDayCents / 100.0;
     
-    // Calcular total
     final totalAmount = dailyPrice * numberOfDays;
 
     final payment = Payment(

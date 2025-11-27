@@ -1,8 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
 import 'package:lendly_app/domain/model/rating.dart';
-import 'package:lendly_app/features/profile/data/repositories/profile_detail_repository_impl.dart';
-import 'package:lendly_app/features/profile/data/source/profile_detail_data_source.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_user_account_created_date_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_user_profile_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_user_transactions_count_usecase.dart';
@@ -77,23 +75,22 @@ class ProfileDetailError extends ProfileDetailState {
 
 // BLOC
 class ProfileDetailBloc extends Bloc<ProfileDetailEvent, ProfileDetailState> {
-  final GetUserProfileUseCase getUserProfileUseCase;
-  final GetUserAccountCreatedDateUseCase getAccountCreatedDateUseCase;
-  final GetUserTransactionsCountUseCase getTransactionsCountUseCase;
-  final GetUserAverageRatingUseCase getUserAverageRatingUseCase;
-  final GetUserRatingsPaginatedUseCase getUserRatingsPaginatedUseCase;
+  late final GetUserProfileUseCase getUserProfileUseCase;
+  late final GetUserAccountCreatedDateUseCase getAccountCreatedDateUseCase;
+  late final GetUserTransactionsCountUseCase getTransactionsCountUseCase;
+  late final GetUserAverageRatingUseCase getUserAverageRatingUseCase;
+  late final GetUserRatingsPaginatedUseCase getUserRatingsPaginatedUseCase;
 
   static const int pageSize = 10;
 
-  ProfileDetailBloc({
-    required this.getUserProfileUseCase,
-    required this.getAccountCreatedDateUseCase,
-    required this.getTransactionsCountUseCase,
-    GetUserAverageRatingUseCase? getUserAverageRatingUseCase,
-    GetUserRatingsPaginatedUseCase? getUserRatingsPaginatedUseCase,
-  })  : getUserAverageRatingUseCase = getUserAverageRatingUseCase ?? GetUserAverageRatingUseCase(),
-        getUserRatingsPaginatedUseCase = getUserRatingsPaginatedUseCase ?? GetUserRatingsPaginatedUseCase(),
-        super(ProfileDetailInitial()) {
+  ProfileDetailBloc() : super(ProfileDetailInitial()) {
+    // El BLoC solo instancia use cases, los use cases instancian los repositories
+    getUserProfileUseCase = GetUserProfileUseCase();
+    getAccountCreatedDateUseCase = GetUserAccountCreatedDateUseCase();
+    getTransactionsCountUseCase = GetUserTransactionsCountUseCase();
+    getUserAverageRatingUseCase = GetUserAverageRatingUseCase();
+    getUserRatingsPaginatedUseCase = GetUserRatingsPaginatedUseCase();
+    
     on<LoadProfileDetail>(_onLoadProfileDetail);
     on<LoadMoreRatings>(_onLoadMoreRatings);
   }

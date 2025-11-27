@@ -5,7 +5,7 @@ import 'package:lendly_app/features/chat/domain/repositories/conversation_reposi
 class ConversationRepositoryImpl implements ConversationRepository {
   final ConversationDataSource dataSource;
 
-  ConversationRepositoryImpl(this.dataSource);
+  ConversationRepositoryImpl() : dataSource = ConversationDataSourceImpl();
 
   @override
   Future<Conversation> findOrCreateConversation(

@@ -6,7 +6,7 @@ import 'package:lendly_app/features/chat/domain/repositories/message_repository.
 class GetMessagesUseCase {
   final MessageRepository repository;
 
-  GetMessagesUseCase(this.repository);
+  GetMessagesUseCase() : repository = MessageRepositoryImpl(MessageDataSourceImpl());
 
   Future<List<Message>> execute(String conversationId) async {
     return await repository.getMessagesByConversation(conversationId);

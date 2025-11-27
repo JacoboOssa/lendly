@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
 import 'package:lendly_app/core/widgets/loading_spinner.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lendly_app/features/profile/data/repositories/profile_detail_repository_impl.dart';
-import 'package:lendly_app/features/profile/data/source/profile_detail_data_source.dart';
-import 'package:lendly_app/features/profile/domain/usecases/get_user_account_created_date_usecase.dart';
-import 'package:lendly_app/features/profile/domain/usecases/get_user_profile_usecase.dart';
-import 'package:lendly_app/features/profile/domain/usecases/get_user_transactions_count_usecase.dart';
 import 'package:lendly_app/features/profile/presentation/bloc/profile_detail_bloc.dart';
-import 'package:lendly_app/features/rating/domain/usecases/get_user_average_rating_usecase.dart';
-import 'package:lendly_app/features/rating/domain/usecases/get_user_ratings_paginated_usecase.dart';
-import 'package:intl/intl.dart';
 
 class ProfileDetailScreen extends StatelessWidget {
   final String userId;
@@ -20,19 +13,7 @@ class ProfileDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ProfileDetailBloc(
-        getUserProfileUseCase: GetUserProfileUseCase(
-          ProfileDetailRepositoryImpl(ProfileDetailDataSourceImpl()),
-        ),
-        getAccountCreatedDateUseCase: GetUserAccountCreatedDateUseCase(
-          ProfileDetailRepositoryImpl(ProfileDetailDataSourceImpl()),
-        ),
-        getTransactionsCountUseCase: GetUserTransactionsCountUseCase(
-          ProfileDetailRepositoryImpl(ProfileDetailDataSourceImpl()),
-        ),
-        getUserAverageRatingUseCase: GetUserAverageRatingUseCase(),
-        getUserRatingsPaginatedUseCase: GetUserRatingsPaginatedUseCase(),
-      )..add(LoadProfileDetail(userId)),
+      create: (_) => ProfileDetailBloc()..add(LoadProfileDetail(userId)),
       child: const _ProfileDetailView(),
     );
   }

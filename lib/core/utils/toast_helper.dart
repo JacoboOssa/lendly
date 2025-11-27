@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
 
 class ToastHelper {
-  /// Muestra un toast de éxito
   static void showSuccess(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -33,7 +32,6 @@ class ToastHelper {
     );
   }
 
-  /// Muestra un toast de error
   static void showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -64,7 +62,6 @@ class ToastHelper {
     );
   }
 
-  /// Muestra un toast de información
   static void showInfo(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

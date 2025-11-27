@@ -1,13 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lendly_app/domain/model/conversation.dart';
 import 'package:lendly_app/domain/model/app_user.dart';
-import 'package:lendly_app/features/chat/data/repositories/conversation_repository_impl.dart';
-import 'package:lendly_app/features/chat/data/source/conversation_data_source.dart';
+import 'package:lendly_app/domain/model/conversation.dart';
 import 'package:lendly_app/features/chat/domain/usecases/get_conversations_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_current_user_usecase.dart';
 import 'package:lendly_app/features/profile/domain/usecases/get_user_profile_usecase.dart';
-import 'package:lendly_app/features/profile/data/repositories/profile_detail_repository_impl.dart';
-import 'package:lendly_app/features/profile/data/source/profile_detail_data_source.dart';
 
 // Events
 abstract class ConversationsListEvent {}
@@ -47,24 +43,16 @@ class ConversationWithUser {
 // Bloc
 class ConversationsListBloc
     extends Bloc<ConversationsListEvent, ConversationsListState> {
-  final GetCurrentUserUsecase getCurrentUserUsecase;
-  final GetConversationsUseCase getConversationsUseCase;
-  final GetUserProfileUseCase getUserProfileUseCase;
+  late final GetCurrentUserUsecase getCurrentUserUsecase;
+  late final GetConversationsUseCase getConversationsUseCase;
+  late final GetUserProfileUseCase getUserProfileUseCase;
 
-  ConversationsListBloc({
-    GetCurrentUserUsecase? getCurrentUserUsecase,
-    GetConversationsUseCase? getConversationsUseCase,
-    GetUserProfileUseCase? getUserProfileUseCase,
-  })  : getCurrentUserUsecase = getCurrentUserUsecase ?? GetCurrentUserUsecase(),
-        getConversationsUseCase = getConversationsUseCase ??
-            GetConversationsUseCase(
-              ConversationRepositoryImpl(ConversationDataSourceImpl()),
-            ),
-        getUserProfileUseCase = getUserProfileUseCase ??
-            GetUserProfileUseCase(
-              ProfileDetailRepositoryImpl(ProfileDetailDataSourceImpl()),
-            ),
-        super(ConversationsListInitial()) {
+  ConversationsListBloc() : super(ConversationsListInitial()) {
+    // El BLoC solo instancia use cases, los use cases instancian los repositories
+    getCurrentUserUsecase = GetCurrentUserUsecase();
+    getConversationsUseCase = GetConversationsUseCase();
+    getUserProfileUseCase = GetUserProfileUseCase();
+    
     on<LoadConversationsEvent>(_onLoadConversations);
   }
 

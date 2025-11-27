@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
 
-/// AppBar personalizado con estilo consistente en toda la aplicación
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onBackPressed;

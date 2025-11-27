@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:lendly_app/domain/model/rental_request.dart';
-import 'package:lendly_app/features/offers/presentation/bloc/offers_received_bloc.dart';
-import 'package:lendly_app/features/offers/domain/usecases/get_received_rental_requests_usecase.dart';
-import 'package:lendly_app/features/offers/domain/usecases/approve_rental_request_usecase.dart';
-import 'package:lendly_app/features/offers/domain/usecases/reject_rental_request_usecase.dart';
-import 'package:lendly_app/features/auth/domain/usecases/get_current_user_id_usecase.dart';
-import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
-import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
-import 'package:lendly_app/core/utils/toast_helper.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
-import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/utils/toast_helper.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
+import 'package:lendly_app/domain/model/rental_request.dart';
+import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
+import 'package:lendly_app/features/offers/presentation/bloc/offers_received_bloc.dart';
+import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
 
 class OffersReceivedScreen extends StatelessWidget {
   const OffersReceivedScreen({super.key});
@@ -20,12 +16,7 @@ class OffersReceivedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OffersReceivedBloc(
-        getUseCase: GetReceivedRentalRequestsUseCase(),
-        approveUseCase: ApproveRentalRequestUseCase(),
-        rejectUseCase: RejectRentalRequestUseCase(),
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase(),
-      )..add(LoadOffersEvent()),
+      create: (_) => OffersReceivedBloc()..add(LoadOffersEvent()),
       child: const _OffersView(),
     );
   }

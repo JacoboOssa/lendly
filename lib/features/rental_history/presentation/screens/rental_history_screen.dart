@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:lendly_app/core/utils/app_colors.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
-import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lendly_app/features/rental_history/presentation/bloc/rental_history_bloc.dart';
-import 'package:lendly_app/features/rental_history/domain/usecases/get_rental_history_usecase.dart';
+import 'package:intl/intl.dart';
+import 'package:lendly_app/core/services/user_session_service.dart';
+import 'package:lendly_app/core/utils/app_colors.dart';
+import 'package:lendly_app/core/widgets/app_bar_custom.dart';
+import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/features/chat/presentation/screens/chat_conversation_screen.dart';
 import 'package:lendly_app/features/checkout/presentation/screens/checkout_screen.dart';
-import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
-import 'package:lendly_app/core/services/user_session_service.dart';
 import 'package:lendly_app/features/profile/presentation/screens/profile_detail_screen.dart';
-import 'package:intl/intl.dart';
+import 'package:lendly_app/features/rental_history/presentation/bloc/rental_history_bloc.dart';
+import 'package:lendly_app/features/return/presentation/screens/return_screen.dart';
 
 class RentalHistoryScreen extends StatelessWidget {
   const RentalHistoryScreen({super.key});

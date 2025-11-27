@@ -8,6 +8,7 @@ abstract class ProductDataSource {
     required int pageSize,
   });
   Future<AppUser?> getOwnerInfo(String ownerId);
+  Future<Product> getProductById(String productId);
 }
 
 class ProductDataSourceImpl extends ProductDataSource {
@@ -41,5 +42,16 @@ class ProductDataSourceImpl extends ProductDataSource {
 
     if (response == null) return null;
     return AppUser.fromJson(response);
+  }
+
+  @override
+  Future<Product> getProductById(String productId) async {
+    final response = await Supabase.instance.client
+        .from('items')
+        .select()
+        .eq('id', productId)
+        .single();
+
+    return Product.fromJson(response);
   }
 }

@@ -5,7 +5,7 @@ import 'package:lendly_app/features/return/domain/repositories/return_repository
 class ReturnRepositoryImpl implements ReturnRepository {
   final ReturnDataSource dataSource;
 
-  ReturnRepositoryImpl(this.dataSource);
+  ReturnRepositoryImpl() : dataSource = ReturnDataSourceImpl();
 
   @override
   Future<Return> createReturn(Return returnData) {
