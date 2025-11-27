@@ -275,74 +275,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _showConfirmationModal(BuildContext context, RentalRequest request) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 12),
-            Text(
-              'Solicitud Enviada',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1F1F1F),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tu solicitud de alquiler ha sido enviada exitosamente.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Color(0xFF6D6D6D),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Del ${request.startDate.day}/${request.startDate.month}/${request.startDate.year} '
-              'al ${request.endDate.day}/${request.endDate.month}/${request.endDate.year}',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F1F1F),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'El propietario revisará tu solicitud y te notificará la respuesta.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF9E9E9E),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Cerrar el modal
-              Navigator.of(context).pop(); // Volver a la pantalla anterior
-            },
-            child: const Text(
-              'Entendido',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+    // Mostrar toast en lugar de modal
+    ToastHelper.showSuccess(
+      context,
+      'Tu solicitud de alquiler ha sido enviada exitosamente.\n'
+      'Del ${request.startDate.day}/${request.startDate.month}/${request.startDate.year} '
+      'al ${request.endDate.day}/${request.endDate.month}/${request.endDate.year}',
     );
+    // Volver a la pantalla anterior después de un breve delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 }
 

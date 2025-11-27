@@ -125,6 +125,7 @@ class MyApp extends StatelessWidget {
           final ownerName = args != null && args.containsKey('ownerName') ? args['ownerName'] as String : '';
           final productId = args != null && args.containsKey('productId') ? args['productId'] as String : '';
           final productTitle = args != null && args.containsKey('productTitle') ? args['productTitle'] as String : '';
+          final productPhotoUrl = args != null && args.containsKey('productPhotoUrl') ? args['productPhotoUrl'] as String? : null;
           return BlocProvider(
             create: (_) => RatingOwnerProductBloc(),
             child: RatingOwnerProductScreen(
@@ -133,6 +134,7 @@ class MyApp extends StatelessWidget {
               ownerName: ownerName,
               productId: productId,
               productTitle: productTitle,
+              productPhotoUrl: productPhotoUrl,
             ),
           );
         },

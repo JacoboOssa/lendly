@@ -21,7 +21,7 @@ class RentedProductCard extends StatelessWidget {
   });
 
   Color get _primary => const Color(0xFF555879);
-  Color get _bg => const Color(0xFFFAFAFA);
+  Color get _bg => Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +40,9 @@ class RentedProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

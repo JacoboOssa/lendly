@@ -131,7 +131,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             _CheckoutFooter(
               totalLabel: _formatCurrency(_total),
-              buttonLabel: _isProcessing ? 'Procesando...' : 'Realizar pedido',
+              buttonLabel: _isProcessing ? 'Procesando...' : 'Realizar el pago',
               onSubmit: _isProcessing ? null : _processPayment,
             ),
           ],
@@ -149,6 +149,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -182,6 +183,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -229,9 +231,9 @@ class _CheckoutCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F2EF),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEAE5E1)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE8E8E8)),
         ),
         child: Row(
           children: [
@@ -242,8 +244,9 @@ class _CheckoutCard extends StatelessWidget {
                   Text(
                     label,
                     style: const TextStyle(
-                      color: Color(0xFFA6A2A1),
+                      color: Color(0xFF9E9E9E),
                       fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -251,8 +254,8 @@ class _CheckoutCard extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       color: filled
-                          ? const Color(0xFF1F1F1F)
-                          : const Color(0xFF807B7A),
+                          ? AppColors.textPrimary
+                          : const Color(0xFF9E9E9E),
                       fontSize: 16,
                       fontWeight: filled ? FontWeight.w600 : FontWeight.w500,
                     ),
@@ -261,7 +264,10 @@ class _CheckoutCard extends StatelessWidget {
               ),
             ),
             if (trailing != null) ...[const SizedBox(width: 12), trailing!],
-            const Icon(Icons.chevron_right, color: Color(0xFF7C7574)),
+            Icon(
+              Icons.chevron_right,
+              color: filled ? AppColors.primary : const Color(0xFF9E9E9E),
+            ),
           ],
         ),
       ),
@@ -380,49 +386,48 @@ class _CheckoutFooter extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                totalLabel,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-            Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: onSubmit,
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(
-                    color: onSubmit != null
-                        ? AppColors.primary
-                        : Colors.grey,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+              Text(
+                totalLabel,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                 ),
-                child: Text(
-                  buttonLabel,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: onSubmit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                buttonLabel,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -512,91 +517,98 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.85,
-      minChildSize: 0.6,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Dirección de envío',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: widget.addressController,
-                    decoration: _inputDecoration('Dirección'),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa la dirección'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.cityController,
-                          decoration: _inputDecoration('Ciudad'),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Ingresa la ciudad'
-                              : null,
-                        ),
+    return Container(
+      color: Colors.white,
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.85,
+        minChildSize: 0.6,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Dirección de envío',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.postalCodeController,
-                          decoration: _inputDecoration('Código postal'),
-                          keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: widget.addressController,
+                      decoration: _inputDecoration('Dirección'),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Ingresa la dirección'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: widget.cityController,
+                            decoration: _inputDecoration('Ciudad'),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Ingresa la ciudad'
+                                : null,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: widget.countryController,
-                    decoration: _inputDecoration('País'),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa el país'
-                        : null,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: widget.postalCodeController,
+                            decoration: _inputDecoration('Código postal'),
+                            keyboardType: TextInputType.number,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Guardar dirección',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: widget.countryController,
+                      decoration: _inputDecoration('País'),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Ingresa el país'
+                          : null,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _save,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Guardar dirección',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -658,133 +670,140 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.85,
-      minChildSize: 0.6,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Método de pago',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: widget.cardNumberController,
-                    decoration: _inputDecoration('Número de tarjeta'),
-                    keyboardType: TextInputType.number,
-                    maxLength: 19,
-                    onChanged: (value) {
-                      final formatted = _formatCardNumber(value);
-                      if (formatted != value) {
-                        widget.cardNumberController.value = TextEditingValue(
-                          text: formatted,
-                          selection: TextSelection.collapsed(
-                            offset: formatted.length,
+    return Container(
+      color: Colors.white,
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.85,
+        minChildSize: 0.6,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Método de pago',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: widget.cardNumberController,
+                      decoration: _inputDecoration('Número de tarjeta'),
+                      keyboardType: TextInputType.number,
+                      maxLength: 19,
+                      onChanged: (value) {
+                        final formatted = _formatCardNumber(value);
+                        if (formatted != value) {
+                          widget.cardNumberController.value = TextEditingValue(
+                            text: formatted,
+                            selection: TextSelection.collapsed(
+                              offset: formatted.length,
+                            ),
+                          );
+                        }
+                      },
+                      validator: (v) {
+                        final cleaned = v?.replaceAll(' ', '') ?? '';
+                        if (cleaned.isEmpty)
+                          return 'Ingresa el número de tarjeta';
+                        if (cleaned.length < 13 || cleaned.length > 19) {
+                          return 'Número de tarjeta inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: widget.cardNameController,
+                      decoration: _inputDecoration('Nombre en la tarjeta'),
+                      textCapitalization: TextCapitalization.words,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Ingresa el nombre'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: widget.expiryController,
+                            decoration: _inputDecoration('MM/AA'),
+                            keyboardType: TextInputType.number,
+                            maxLength: 5,
+                            onChanged: (value) {
+                              if (value.length == 2 && !value.contains('/')) {
+                                widget.expiryController.value = TextEditingValue(
+                                  text: '$value/',
+                                  selection: TextSelection.collapsed(offset: 3),
+                                );
+                              }
+                            },
+                            validator: (v) {
+                              if (v == null || v.isEmpty)
+                                return 'Ingresa la fecha';
+                              if (!RegExp(r'^\d{2}/\d{2}$').hasMatch(v)) {
+                                return 'Formato inválido';
+                              }
+                              return null;
+                            },
                           ),
-                        );
-                      }
-                    },
-                    validator: (v) {
-                      final cleaned = v?.replaceAll(' ', '') ?? '';
-                      if (cleaned.isEmpty)
-                        return 'Ingresa el número de tarjeta';
-                      if (cleaned.length < 13 || cleaned.length > 19) {
-                        return 'Número de tarjeta inválido';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: widget.cardNameController,
-                    decoration: _inputDecoration('Nombre en la tarjeta'),
-                    textCapitalization: TextCapitalization.words,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Ingresa el nombre'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.expiryController,
-                          decoration: _inputDecoration('MM/AA'),
-                          keyboardType: TextInputType.number,
-                          maxLength: 5,
-                          onChanged: (value) {
-                            if (value.length == 2 && !value.contains('/')) {
-                              widget.expiryController.value = TextEditingValue(
-                                text: '$value/',
-                                selection: TextSelection.collapsed(offset: 3),
-                              );
-                            }
-                          },
-                          validator: (v) {
-                            if (v == null || v.isEmpty)
-                              return 'Ingresa la fecha';
-                            if (!RegExp(r'^\d{2}/\d{2}$').hasMatch(v)) {
-                              return 'Formato inválido';
-                            }
-                            return null;
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.cvvController,
-                          decoration: _inputDecoration('CVV'),
-                          keyboardType: TextInputType.number,
-                          maxLength: 4,
-                          obscureText: true,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Ingresa el CVV';
-                            if (v.length < 3) return 'CVV inválido';
-                            return null;
-                          },
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: widget.cvvController,
+                            decoration: _inputDecoration('CVV'),
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            obscureText: true,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Ingresa el CVV';
+                              if (v.length < 3) return 'CVV inválido';
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _save,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Guardar método',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          'Guardar método',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

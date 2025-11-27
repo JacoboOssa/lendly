@@ -17,6 +17,9 @@ class ManageProductsScreen extends StatefulWidget {
 }
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
+  String? _lastOperation; // 'update', 'delete', 'toggle'
+  bool _wasProcessing = false;
+
   @override
   void initState() {
     super.initState();
@@ -44,9 +47,26 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
             listener: (context, state) {
               if (state is ManageProductsError) {
                 ToastHelper.showError(context, state.message);
+                _lastOperation = null;
+                _wasProcessing = false;
+              } else if (state is ManageProductsLoaded) {
+                // Detectar cuando se completa una operación
+                if (_wasProcessing && !state.isProcessing && _lastOperation != null) {
+                  switch (_lastOperation) {
+                    case 'update':
+                      ToastHelper.showSuccess(context, 'Producto actualizado exitosamente');
+                      break;
+                    case 'delete':
+                      ToastHelper.showSuccess(context, 'Producto eliminado exitosamente');
+                      break;
+                    case 'toggle':
+                      ToastHelper.showSuccess(context, 'Disponibilidad actualizada exitosamente');
+                      break;
+                  }
+                  _lastOperation = null;
+                }
+                _wasProcessing = state.isProcessing;
               }
-              // Ya no necesitamos recargar manualmente aquí porque el BLoC
-              // hace la operación + recarga automáticamente después del spinner
             },
             builder: (context, state) {
               // Spinner en carga inicial
@@ -66,6 +86,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                       products: state.products,
                       onEdit: _editProduct,
                       onDelete: _deleteProduct,
+                      onToggleAvailability: _toggleAvailability,
                     ),
                     // Spinner durante operaciones (actualizar, eliminar, toggle)
                     if (state.isProcessing)
@@ -108,6 +129,8 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
     );
 
     if (confirmed == true && product.id != null) {
+      _lastOperation = 'delete';
+      _wasProcessing = true;
       context.read<ManageProductsBloc>().add(DeleteProduct(product.id!));
     }
   }
@@ -129,8 +152,16 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
     );
 
     if (updated != null) {
+      _lastOperation = 'update';
+      _wasProcessing = true;
       context.read<ManageProductsBloc>().add(UpdateProduct(updated));
     }
+  }
+
+  void _toggleAvailability(Product product) {
+    _lastOperation = 'toggle';
+    _wasProcessing = true;
+    context.read<ManageProductsBloc>().add(ToggleProductAvailability(product));
   }
 }
 
@@ -159,11 +190,13 @@ class _ProductsList extends StatelessWidget {
   final List<Product> products;
   final Function(Product) onEdit;
   final Function(Product) onDelete;
+  final Function(Product) onToggleAvailability;
 
   const _ProductsList({
     required this.products,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleAvailability,
   });
 
   @override
@@ -177,6 +210,7 @@ class _ProductsList extends StatelessWidget {
           product: product,
           onEdit: () => onEdit(product),
           onDelete: () => onDelete(product),
+          onToggleAvailability: () => onToggleAvailability(product),
         );
       },
     );
@@ -187,20 +221,18 @@ class _ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onToggleAvailability;
 
   const _ProductCard({
     required this.product,
     required this.onEdit,
     required this.onDelete,
+    required this.onToggleAvailability,
   });
 
   String _formatPrice(int priceInCents) {
     final price = priceInCents / 100;
     return '\$${price.toStringAsFixed(0)}/día';
-  }
-
-  void _toggleAvailability(BuildContext context) {
-    context.read<ManageProductsBloc>().add(ToggleProductAvailability(product));
   }
 
   @override
@@ -211,9 +243,9 @@ class _ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -323,8 +355,8 @@ class _ProductCard extends StatelessWidget {
                         scale: 0.85,
                         child: Switch(
                           value: product.isAvailable,
-                          onChanged: (_) => _toggleAvailability(context),
-                          activeThumbColor: const Color(0xFF2E7D32),
+                          onChanged: (_) => onToggleAvailability(),
+                          activeThumbColor: AppColors.primary,
                           activeTrackColor: const Color(0xFFC8E6C9),
                         ),
                       ),

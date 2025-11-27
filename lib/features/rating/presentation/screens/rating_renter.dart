@@ -157,7 +157,7 @@ class _RatingRenterScreenState extends State<RatingRenterScreen> {
                       controller: _commentController,
                       maxLines: 6,
                       decoration: InputDecoration(
-                        hintText: 'Comentario sobre el producto (opcional)',
+                        hintText: 'Escribe tu opinión sobre el arrendatario (opcional)',
                         filled: true,
                         fillColor: const Color(0xFFF9FAFB),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

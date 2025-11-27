@@ -11,6 +11,7 @@ class RatingOwnerProductScreen extends StatefulWidget {
   final String ownerName;
   final String productId;
   final String productTitle;
+  final String? productPhotoUrl;
 
   const RatingOwnerProductScreen({
     Key? key,
@@ -19,6 +20,7 @@ class RatingOwnerProductScreen extends StatefulWidget {
     required this.ownerName,
     required this.productId,
     required this.productTitle,
+    this.productPhotoUrl,
   }) : super(key: key);
 
   @override
@@ -242,7 +244,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
           minLines: 6,
           maxLines: 10,
           decoration: InputDecoration(
-            hintText: 'Comentario sobre el propietario (opcional)',
+            hintText: 'Escribe tu opinión sobre el dueño (opcional)',
             filled: true,
             fillColor: const Color(0xFFF9FAFB),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -264,9 +266,40 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
 
         Row(
           children: [
-            Container(width: 56, height: 56, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.image, color: Colors.grey)),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: widget.productPhotoUrl != null && widget.productPhotoUrl!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        widget.productPhotoUrl!,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image, color: Colors.grey),
+                      ),
+                    )
+                  : const Icon(Icons.image, color: Colors.grey),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.productTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)), const SizedBox(height: 4), const Text('Producto', style: TextStyle(color: Color(0xFF9E9E9E)))])),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.productTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('Producto', style: TextStyle(color: Color(0xFF9E9E9E))),
+                ],
+              ),
+            ),
           ],
         ),
 
@@ -278,7 +311,7 @@ class _RatingOwnerProductScreenState extends State<RatingOwnerProductScreen> {
           controller: _productCommentController,
           maxLines: 10,
           decoration: InputDecoration(
-            hintText: 'Comentario sobre el producto (opcional)',
+            hintText: 'Escribe tu opinión sobre el producto (opcional)',
             filled: true,
             fillColor: const Color(0xFFF9FAFB),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

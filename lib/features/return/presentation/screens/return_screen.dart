@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lendly_app/core/utils/app_colors.dart';
 import 'package:lendly_app/core/utils/toast_helper.dart';
-import 'package:lendly_app/core/widgets/loading_spinner.dart';
 import 'package:lendly_app/core/widgets/app_bar_custom.dart';
 import 'package:lendly_app/domain/model/rental.dart';
 import 'package:lendly_app/domain/model/rental_request.dart';
@@ -32,17 +31,10 @@ class ReturnScreen extends StatefulWidget {
 
 class _ReturnScreenState extends State<ReturnScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _experienceController = TextEditingController();
 
   TimeOfDay? _returnTime;
   final CreateReturnUseCase _createReturnUseCase = CreateReturnUseCase();
   bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _experienceController.dispose();
-    super.dispose();
-  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -57,9 +49,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
       await _createReturnUseCase.execute(
         rentalId: widget.rental.id!,
         proposedReturnTime: _returnTime!,
-        note: _experienceController.text.trim().isEmpty
-            ? null
-            : _experienceController.text.trim(),
+        note: null,
       );
 
       if (mounted) {
@@ -75,6 +65,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
             'ownerName': widget.owner.name,
             'productId': widget.product.id,
             'productTitle': widget.product.title,
+            'productPhotoUrl': widget.product.photoUrl,
           },
         );
       }
@@ -112,12 +103,6 @@ class _ReturnScreenState extends State<ReturnScreen> {
                 ),
                 const SizedBox(height: 12),
                 _ReadOnlyAddressField(address: widget.rental.pickupLocation),
-                const SizedBox(height: 12),
-                _ReturnFormField(
-                  controller: _experienceController,
-                  label: 'Experiencia con el producto (notas extra)...',
-                  maxLines: 4,
-                ),
                 const SizedBox(height: 32),
                 _ReturnButton(
                   onSubmit: _submit,
@@ -127,43 +112,6 @@ class _ReturnScreenState extends State<ReturnScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReturnFormField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final int maxLines;
-  final String? Function(String?)? validator;
-
-  const _ReturnFormField({
-    required this.controller,
-    required this.label,
-    this.maxLines = 1,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: label,
-        hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 16),
-        filled: true,
-        fillColor: const Color(0xFFF5F5F5),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
         ),
       ),
     );
